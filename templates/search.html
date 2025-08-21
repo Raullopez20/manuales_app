@@ -1,0 +1,720 @@
+{% extends "base.html" %}
+
+{% block title %}Búsqueda Avanzada - Sistema de Manuales{% endblock %}
+
+{% block content %}
+    <!-- Header Section -->
+    <div class="search-header" data-aos="fade-up">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="page-title">
+                    <i class="fas fa-search-plus me-3"></i>Búsqueda Avanzada
+                </h1>
+                <p class="page-subtitle">Encuentra documentos específicos usando filtros avanzados y búsqueda por
+                    contenido</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ total_documentos }}</span>
+                        <span class="stat-label">Resultados</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Advanced Search Form -->
+    <div class="search-form-container" data-aos="fade-up" data-aos-delay="100">
+        <div class="search-form-header">
+            <h5 class="form-title">
+                <i class="fas fa-filter me-2"></i>Filtros de Búsqueda
+            </h5>
+            <button type="button" class="btn btn-outline-secondary btn-sm" id="clearFilters">
+                <i class="fas fa-eraser me-1"></i>Limpiar
+            </button>
+        </div>
+
+        <form method="POST" class="advanced-search-form">
+            {{ form.hidden_tag() }}
+
+            <!-- Main Search Row -->
+            <div class="search-main-row">
+                <div class="search-input-container">
+                    <div class="search-input-wrapper">
+                        <i class="fas fa-search search-icon"></i>
+                        {{ form.termino(class="form-control search-main-input", placeholder="Buscar en títulos, contenido y descripciones...") }}
+                    </div>
+                </div>
+
+                <div class="search-category-container">
+                    <div class="input-group">
+                    <span class="input-group-text">
+                        <i class="fas fa-tag"></i>
+                    </span>
+                        {{ form.categoria_id(class="form-select") }}
+                    </div>
+                </div>
+
+                <div class="search-button-container">
+                    {{ form.submit(class="btn btn-primary search-submit-btn") }}
+                </div>
+            </div>
+
+            <!-- Advanced Filters (Collapsible) -->
+            <div class="advanced-filters">
+                <button type="button" class="btn btn-link p-0" data-bs-toggle="collapse"
+                        data-bs-target="#advancedFilters">
+                    <i class="fas fa-chevron-down me-2"></i>Filtros Avanzados
+                </button>
+
+                <div class="collapse" id="advancedFilters">
+                    <div class="row g-3 mt-2">
+                        <div class="col-md-4">
+                            <label class="form-label small">Tipo de Archivo</label>
+                            <select class="form-select form-select-sm" name="file_type">
+                                <option value="">Todos los tipos</option>
+                                <option value="pdf">PDF</option>
+                                <option value="doc,docx">Word</option>
+                                <option value="xls,xlsx">Excel</option>
+                                <option value="ppt,pptx">PowerPoint</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Fecha desde</label>
+                            <input type="date" class="form-control form-control-sm" name="date_from">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label small">Fecha hasta</label>
+                            <input type="date" class="form-control form-control-sm" name="date_to">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Search Results -->
+    {% if manuales %}
+        <div class="results-container" data-aos="fade-up" data-aos-delay="200">
+            <div class="results-header">
+                <div class="results-info">
+                    <h5 class="results-title">
+                        <i class="fas fa-list-ul me-2"></i>Resultados de Búsqueda
+                    </h5>
+                    <p class="results-count">{{ pagination.total }} documento{% if pagination.total != 1 %}s{% endif %}
+                        encontrado{% if pagination.total != 1 %}s{% endif %}</p>
+                </div>
+
+                <!-- View Toggle -->
+                <div class="view-toggle">
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-outline-secondary btn-sm active" data-view="grid">
+                            <i class="fas fa-th-large"></i>
+                        </button>
+                        <button type="button" class="btn btn-outline-secondary btn-sm" data-view="list">
+                            <i class="fas fa-list"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results Grid -->
+            {% set pagina = request.args.get('pagina', 1) | int %}
+            {% set por_pagina = 9 %}
+            {% set total_documentos = manuales|length %}
+            {% set total_paginas = (total_documentos // por_pagina) + (1 if total_documentos % por_pagina > 0 else 0) %}
+            {% set inicio = (pagina - 1) * por_pagina %}
+            {% set fin = inicio + por_pagina %}
+            <div class="results-grid" id="resultsContainer">
+                {% for manual in manuales[inicio:fin] %}
+                    {% set extension = manual.archivo.split('.')[-1].lower() %}
+                    <div class="result-card" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 }}">
+                        <div class="result-card-header">
+                            <div class="file-icon-container">
+                                {% set extension = manual.archivo.split('.')[-1].lower() %}
+                                {% if extension == 'pdf' %}
+                                    <div class="file-icon file-icon-pdf">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </div>
+                                {% elif extension in ['doc', 'docx'] %}
+                                    <div class="file-icon file-icon-word">
+                                        <i class="fas fa-file-word"></i>
+                                    </div>
+                                {% elif extension in ['xls', 'xlsx'] %}
+                                    <div class="file-icon file-icon-excel">
+                                        <i class="fas fa-file-excel"></i>
+                                    </div>
+                                {% elif extension in ['ppt', 'pptx'] %}
+                                    <div class="file-icon file-icon-powerpoint">
+                                        <i class="fas fa-file-powerpoint"></i>
+                                    </div>
+                                {% else %}
+                                    <div class="file-icon file-icon-default">
+                                        <i class="fas fa-file-alt"></i>
+                                    </div>
+                                {% endif %}
+                            </div>
+
+                            <div class="result-actions">
+                                <div class="dropdown">
+                                    <button class="btn btn-sm btn-ghost" data-bs-toggle="dropdown">
+                                        <i class="fas fa-ellipsis-v"></i>
+                                    </button>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li>
+                                            <a class="dropdown-item"
+                                               href="{{ url_for('main.download', filename=manual.archivo) }}">
+                                                <i class="fas fa-download me-2"></i>Descargar
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#"
+                                               onclick="previewDocument('{{ manual.archivo }}', '{{ extension }}')">
+                                                <i class="fas fa-eye me-2"></i>Vista previa
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="#"
+                                               onclick="shareDocument('{{ manual.titulo }}')">
+                                                <i class="fas fa-share me-2"></i>Compartir
+                                            </a>
+                                        </li>
+                                        <li>
+                                            <hr class="dropdown-divider">
+                                        </li>
+                                        <li>
+                                            <button type="button" class="dropdown-item text-danger" onclick="showDeleteModal({{ manual.id }})">
+                                                <i class="fas fa-trash me-2"></i>Eliminar
+                                            </button>
+                                        </li>
+                                        <li>
+                                            <a class="dropdown-item" href="{{ url_for('main.editar_documento', documento_id=manual.id) }}">
+                                                <i class="fas fa-edit me-2"></i>Editar
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="result-card-body">
+                            <h6 class="result-title">{{ manual.titulo }}</h6>
+                            <p class="result-description">
+                                {{ manual.descripcion[:150] }}{% if manual.descripcion|length > 150 %}...{% endif %}</p>
+
+                            <div class="result-meta">
+                                <div class="meta-row">
+                        <span class="meta-item">
+                            <i class="fas fa-calendar-alt me-1"></i>
+                            {{ manual.fecha_creacion.strftime('%d %b %Y') }}
+                        </span>
+                                    {% if manual.categoria %}
+                                        <span class="meta-item">
+                            <i class="fas fa-tag me-1"></i>
+                            {{ manual.categoria.nombre }}
+                        </span>
+                                    {% endif %}
+                                </div>
+                                <div class="meta-row">
+                        <span class="meta-item">
+                            <i class="fas fa-file me-1"></i>
+                            {{ extension.upper() }}
+                        </span>
+                                    <span class="meta-item">
+                            <i class="fas fa-clock me-1"></i>
+                            Actualizado hace {{ (now() - manual.fecha_creacion).days if (now() - manual.fecha_creacion).days > 0 else 'hoy' }} día
+                                        {% if (now() - manual.fecha_creacion).days != 1 %}s{% endif %}
+                        </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="result-card-footer">
+                            <a href="{{ url_for('main.download', filename=manual.archivo) }}"
+                               class="btn btn-primary btn-sm">
+                                <i class="fas fa-download me-2"></i>Descargar
+                            </a>
+                            {% if soporta_vista_previa(extension) %}
+                                <button class="btn btn-outline-secondary btn-sm"
+                                        onclick="previewDocument('{{ manual.archivo }}', '{{ extension }}')">
+                                    <i class="fas fa-eye me-2"></i>Vista previa
+                                </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+            <div class="custom-pagination d-flex justify-content-center align-items-center mt-4 gap-3">
+                <button type="button" class="btn btn-pagination pagination-blue {% if pagina <= 1 %}disabled{% endif %}" onclick="window.location='?pagina={{ pagina - 1 }}'" aria-label="Anterior">
+                    <span class="pagination-arrow text-primary"><i class="fas fa-angle-double-left"></i></span>
+                </button>
+                <span class="pagination-info">Página <strong>{{ pagina }}</strong> de <strong>{{ total_paginas }}</strong> &mdash; Mostrando <strong>{{ inicio + 1 }}</strong> a <strong>{{ fin if fin < total_documentos else total_documentos }}</strong> de <strong>{{ total_documentos }}</strong></span>
+                <button type="button" class="btn btn-pagination pagination-blue {% if pagina >= total_paginas %}disabled{% endif %}" onclick="window.location='?pagina={{ pagina + 1 }}'" aria-label="Siguiente">
+                    <span class="pagination-arrow text-primary"><i class="fas fa-angle-double-right"></i></span>
+                </button>
+            </div>
+        </div>
+        </div>
+    {% else %}
+        <!-- No Results State -->
+        <div class="no-results-container" data-aos="fade-up" data-aos-delay="200">
+            <div class="no-results-content">
+                <div class="no-results-icon">
+                    <i class="fas fa-search"></i>
+                </div>
+                <h4>No se encontraron resultados</h4>
+                <p class="text-muted">Intenta ajustar tus términos de búsqueda o filtros para encontrar lo que
+                    buscas.</p>
+
+                <div class="search-suggestions">
+                    <h6>Sugerencias:</h6>
+                    <ul class="suggestion-list">
+                        <li>Verifica la ortografía de las palabras clave</li>
+                        <li>Prueba con términos más generales</li>
+                        <li>Elimina algunos filtros para ampliar la búsqueda</li>
+                        <li>Usa sinónimos o términos relacionados</li>
+                    </ul>
+                </div>
+
+                <div class="no-results-actions">
+                    <button type="button" class="btn btn-outline-primary" onclick="clearAllFilters()">
+                        <i class="fas fa-eraser me-2"></i>Limpiar filtros
+                    </button>
+                    <a href="{{ url_for('main.upload') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i>Subir documento
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+
+    <!-- Quick Actions Sidebar (Fixed) -->
+    <div class="quick-actions-sidebar">
+        <div class="quick-action-item" data-bs-toggle="tooltip" data-bs-placement="left" title="Búsqueda por voz">
+            <button class="btn btn-ghost" id="voiceSearchBtn">
+                <i class="fas fa-microphone"></i>
+            </button>
+        </div>
+        <div class="quick-action-item" data-bs-toggle="tooltip" data-bs-placement="left" title="Filtros guardados">
+            <button class="btn btn-ghost" id="savedFiltersBtn" data-bs-toggle="modal" data-bs-target="#savedFiltersModal">
+                <i class="fas fa-bookmark"></i>
+            </button>
+        </div>
+        <div class="quick-action-item" data-bs-toggle="tooltip" data-bs-placement="left" title="Exportar resultados">
+            <button class="btn btn-ghost" id="exportResultsBtn">
+                <i class="fas fa-download"></i>
+            </button>
+        </div>
+        <div class="quick-action-item" data-bs-toggle="tooltip" data-bs-placement="left" title="Recargar resultados">
+            <button class="btn btn-ghost" id="reloadResultsBtn">
+                <i class="fas fa-sync-alt"></i>
+            </button>
+        </div>
+        <div class="quick-action-item" data-bs-toggle="tooltip" data-bs-placement="left" title="Guardar filtros actuales">
+            <button class="btn btn-ghost" id="guardarFiltrosBtn" data-bs-toggle="modal" data-bs-target="#guardarFiltrosModal">
+                <i class="fas fa-save"></i>
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal para filtros guardados -->
+    <div class="modal fade" id="savedFiltersModal" tabindex="-1" aria-labelledby="savedFiltersModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="savedFiltersModalLabel">Filtros guardados</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="savedFiltersContent">
+                    <!-- Aquí se mostrarán los filtros guardados -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn btn-primary" id="applySavedFiltersBtn">Aplicar filtro seleccionado</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para exportación exitosa -->
+    <div class="modal fade" id="exportSuccessModal" tabindex="-1" aria-labelledby="exportSuccessModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exportSuccessModalLabel">Exportación exitosa</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Los resultados se han exportado correctamente a CSV.</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para guardar filtros -->
+    <div class="modal fade" id="guardarFiltrosModal" tabindex="-1" aria-labelledby="guardarFiltrosModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="guardarFiltrosModalLabel">Guardar filtros</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="guardarFiltrosContent">
+                    <p>¿Deseas guardar los filtros actuales?</p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" id="confirmGuardarFiltrosBtn">Guardar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación de eliminación -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body">
+                    ¿Seguro que deseas eliminar este documento? Esta acción no se puede deshacer.
+                </div>
+                <div class="modal-footer">
+                    <form id="deleteForm" method="POST">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Eliminar</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para compartir documento -->
+    <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="shareModalLabel">Compartir documento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="shareContent">
+                    <!-- Aquí se carga el contenido para compartir por JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de vista previa de documento -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="previewModalLabel">Vista previa del documento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="previewContent">
+                    <!-- Aquí se carga la vista previa por JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de mensajes personalizados -->
+    <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="messageModalLabel">Mensaje</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="messageContent">
+                    <!-- Aquí se muestra el mensaje personalizado -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% block extra_css %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/search.css') }}">
+        <style>
+            .spin {
+                animation: spin 1s linear infinite;
+            }
+            @keyframes spin {
+                100% { transform: rotate(360deg); }
+            }
+            body.modal-open {
+                position: static !important;
+                overflow: auto !important;
+            }
+        </style>
+    {% endblock %}
+
+    <script>
+        // View toggle functionality
+        document.addEventListener('DOMContentLoaded', function () {
+            const viewButtons = document.querySelectorAll('[data-view]');
+            const resultsContainer = document.getElementById('resultsContainer');
+
+            viewButtons.forEach(button => {
+                button.addEventListener('click', function () {
+                    const view = this.dataset.view;
+
+                    // Update active button
+                    viewButtons.forEach(btn => btn.classList.remove('active'));
+                    this.classList.add('active');
+
+                    // Update results container class
+                    if (view === 'list') {
+                        resultsContainer.classList.add('list-view');
+                    } else {
+                        resultsContainer.classList.remove('list-view');
+                    }
+                });
+            });
+        });
+
+        // Clear filters functionality - MEJORADA
+        document.getElementById('clearFilters').addEventListener('click', function () {
+            clearAllFilters();
+        });
+
+        function clearAllFilters() {
+            const form = document.querySelector('.advanced-search-form');
+
+            // Limpiar campos de texto
+            const textInputs = form.querySelectorAll('input[type="text"], input[type="search"], textarea');
+            textInputs.forEach(input => {
+                input.value = '';
+            });
+
+            // Limpiar campos de fecha
+            const dateInputs = form.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                input.value = '';
+            });
+
+            // Resetear selectores a su primera opción (valor vacío)
+            const selects = form.querySelectorAll('select');
+            selects.forEach(select => {
+                select.selectedIndex = 0;
+            });
+
+            // Limpiar checkboxes y radio buttons
+            const checkboxes = form.querySelectorAll('input[type="checkbox"], input[type="radio"]');
+            checkboxes.forEach(checkbox => {
+                checkbox.checked = false;
+            });
+
+            // Limpiar campos con name específicos de filtros avanzados
+            const advancedFilters = form.querySelectorAll('input[name="file_type"], input[name="date_from"], input[name="date_to"], select[name="file_type"]');
+            advancedFilters.forEach(filter => {
+                if (filter.type === 'select-one') {
+                    filter.selectedIndex = 0;
+                } else {
+                    filter.value = '';
+                }
+            });
+
+            // Reset completo del formulario
+            form.reset();
+
+            // Actualizar la URL para eliminar parámetros de búsqueda
+            const currentUrl = new URL(window.location);
+            currentUrl.search = '';
+            window.history.replaceState({}, '', currentUrl);
+
+            // Enviar formulario para mostrar resultados sin filtros
+            form.submit();
+        }
+
+        // Búsqueda por voz
+        document.getElementById('voiceSearchBtn').addEventListener('click', function () {
+            if (!('webkitSpeechRecognition' in window)) {
+                alert('Tu navegador no soporta búsqueda por voz. Usa Chrome o Edge.');
+                return;
+            }
+            const recognition = new webkitSpeechRecognition();
+            recognition.lang = 'es-ES';
+            recognition.interimResults = false;
+            recognition.maxAlternatives = 1;
+            recognition.onresult = function(event) {
+                const transcript = event.results[0][0].transcript;
+                const searchInput = document.querySelector('.search-main-input');
+                searchInput.value = transcript;
+                searchInput.form.submit();
+            };
+            recognition.onerror = function(event) {
+                alert('Error en la búsqueda por voz: ' + event.error);
+            };
+            recognition.start();
+        });
+
+        // Guardar múltiples filtros en localStorage
+        function getFiltrosGuardados() {
+            let arr = [];
+            try {
+                arr = JSON.parse(localStorage.getItem('filtrosGuardadosArr')) || [];
+            } catch(e) {}
+            return arr;
+        }
+        function setFiltrosGuardados(arr) {
+            localStorage.setItem('filtrosGuardadosArr', JSON.stringify(arr));
+        }
+
+        // Mostrar filtros guardados y permitir eliminar
+        let filtroSeleccionado = null;
+        function mostrarFiltrosGuardados() {
+            let filtrosArr = getFiltrosGuardados();
+            const content = document.getElementById('savedFiltersContent');
+            if (!filtrosArr.length) {
+                content.innerHTML = '<div class="text-center text-muted">No tienes filtros guardados aún.</div>';
+                document.getElementById('applySavedFiltersBtn').style.display = 'none';
+            } else {
+                let html = '<div class="mb-2"><strong>Filtros guardados:</strong></div>';
+                html += '<ul class="list-group">';
+                filtrosArr.forEach((filtro, idx) => {
+                    html += `<li class="list-group-item d-flex justify-content-between align-items-center">
+                        <span><input type="radio" name="filtroRadio" value="${idx}" style="margin-right:8px;" ${filtroSeleccionado===idx?'checked':''}>${filtro}</span>
+                        <button class="btn btn-sm btn-danger" onclick="eliminarFiltroGuardado(${idx})"><i class="fas fa-trash"></i></button>
+                    </li>`;
+                });
+                html += '</ul>';
+                content.innerHTML = html;
+                document.getElementById('applySavedFiltersBtn').style.display = 'inline-block';
+                // Selección de filtro
+                document.querySelectorAll('input[name="filtroRadio"]').forEach(radio => {
+                    radio.onclick = function() { filtroSeleccionado = parseInt(this.value); };
+                });
+            }
+        }
+        window.eliminarFiltroGuardado = function(idx) {
+            let arr = getFiltrosGuardados();
+            arr.splice(idx,1);
+            setFiltrosGuardados(arr);
+            filtroSeleccionado = null;
+            mostrarFiltrosGuardados();
+        }
+        document.getElementById('savedFiltersBtn').addEventListener('click', mostrarFiltrosGuardados);
+        document.getElementById('savedFiltersModal').addEventListener('show.bs.modal', mostrarFiltrosGuardados);
+        document.getElementById('applySavedFiltersBtn').addEventListener('click', function() {
+            let arr = getFiltrosGuardados();
+            if (arr.length && filtroSeleccionado!==null && arr[filtroSeleccionado]) {
+                let partes = arr[filtroSeleccionado].split(',');
+                partes.forEach(p => {
+                    let [clave, valor] = p.split(':').map(x => x.trim());
+                    if (clave === 'Término') document.querySelector('.search-main-input').value = valor;
+                    if (clave === 'Categoría') document.querySelector('select[name="categoria_id"]').value = valor;
+                    if (clave === 'Tipo') document.querySelector('select[name="file_type"]').value = valor;
+                });
+                document.querySelector('.advanced-search-form').submit();
+            }
+        });
+
+        // Exportar resultados a CSV
+        document.getElementById('exportResultsBtn').addEventListener('click', function () {
+            let rows = [];
+            document.querySelectorAll('.result-card').forEach(card => {
+                let titulo = card.querySelector('.result-title')?.innerText.replace(/,/g, ' ') || '';
+                let descripcion = card.querySelector('.result-description')?.innerText.replace(/,/g, ' ') || '';
+                let categoria = card.querySelector('.meta-item:nth-child(2)')?.innerText.replace(/,/g, ' ') || '';
+                let tipo = card.querySelector('.meta-item:nth-child(3)')?.innerText.replace(/,/g, ' ') || '';
+                rows.push([titulo, descripcion, categoria, tipo]);
+            });
+            if (rows.length === 0) {
+                alert('No hay resultados para exportar.');
+                return;
+            }
+            let csv = 'Título,Descripción,Categoría,Tipo\n' + rows.map(r => r.join(',')).join('\n');
+            let blob = new Blob([csv], { type: 'text/csv' });
+            let a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'resultados_busqueda.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            let exportModal = new bootstrap.Modal(document.getElementById('exportSuccessModal'));
+            exportModal.show();
+        });
+
+        // Recargar resultados con animación de rueda
+        document.getElementById('reloadResultsBtn').addEventListener('click', function () {
+            let btn = this;
+            btn.querySelector('i').classList.add('spin');
+            setTimeout(() => {
+                location.reload();
+            }, 1200);
+        });
+
+        // Guardar filtros actuales con modal
+        document.getElementById('confirmGuardarFiltrosBtn').addEventListener('click', function() {
+            const termino = document.querySelector('.search-main-input').value;
+            const categoria = document.querySelector('select[name="categoria_id"]').value;
+            const tipo = document.querySelector('select[name="file_type"]').value;
+            let filtros = `Término: ${termino}, Categoría: ${categoria}, Tipo: ${tipo}`;
+            let arr = getFiltrosGuardados();
+            arr.push(filtros);
+            setFiltrosGuardados(arr);
+            var modal = bootstrap.Modal.getInstance(document.getElementById('guardarFiltrosModal'));
+            modal.hide();
+            // Actualizar modal de filtros guardados si está abierto
+            mostrarFiltrosGuardados();
+        });
+
+        // Mostrar modal de eliminación
+        function showDeleteModal(manualId) {
+            var modal = new bootstrap.Modal(document.getElementById('deleteModal'));
+            var form = document.getElementById('deleteForm');
+            form.action = '/eliminar_manual/' + manualId;
+            modal.show();
+        }
+
+        // Funciones para vista previa y compartir
+        function previewDocument(filename, extension) {
+            const content = document.getElementById('previewContent');
+            content.innerHTML = '<p>Cargando vista previa...</p>';
+            const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+            modal.show();
+
+            // Simulación de carga de vista previa
+            setTimeout(() => {
+                content.innerHTML = `
+                    <embed src="{{ url_for('main.download', filename='') }}${filename}" type="application/pdf" width="100%" height="600px" />
+                `;
+            }, 500);
+        }
+
+        function shareDocument(title) {
+            const content = document.getElementById('shareContent');
+            content.innerHTML = `
+                <p>Compartir documento: <strong>${title}</strong></p>
+                <p>Enlace: <a href="{{ url_for('main.download', filename='') }}${filename}" target="_blank">{{ url_for('main.download', filename='') }}${filename}</a></p>
+            `;
+            const modal = new bootstrap.Modal(document.getElementById('shareModal'));
+            modal.show();
+        }
+
+        // Mostrar mensaje personalizado en modal
+        function showMessageModal(message, title = 'Mensaje') {
+            document.getElementById('messageModalLabel').innerText = title;
+            document.getElementById('messageContent').innerHTML = message;
+            var modal = new bootstrap.Modal(document.getElementById('messageModal'));
+            modal.show();
+        }
+        // Reemplazar alert() por showMessageModal en JS
+        window.alert = function(msg) { showMessageModal(msg); };
+    </script>
+{% endblock %}
+
+{% macro soporta_vista_previa(extension) %}
+    {{ extension in ['pdf', 'txt', 'doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'] }}
+{% endmacro %}

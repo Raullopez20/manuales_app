@@ -1,0 +1,260 @@
+{% extends "base.html" %}
+
+{% block title %}Archivo demasiado grande - Sistema de Manuales{% endblock %}
+
+{% block content %}
+    <div class="error-container" data-aos="fade-up">
+        <div class="error-content">
+            <div class="error-icon">
+                <i class="fas fa-file-upload"></i>
+            </div>
+            <div class="error-code">413</div>
+            <h1 class="error-title">Archivo demasiado grande</h1>
+            <p class="error-description">
+                El archivo que intentas subir excede el tamaño máximo permitido de 50MB.
+                Por favor, reduce el tamaño del archivo o divídelo en partes más pequeñas.
+            </p>
+
+            <div class="error-suggestions">
+                <h5>Sugerencias para reducir el tamaño:</h5>
+                <ul>
+                    <li>Comprime el archivo usando herramientas como WinRAR o 7-Zip</li>
+                    <li>Para PDFs, usa herramientas online de compresión</li>
+                    <li>Para imágenes, reduce la resolución o calidad</li>
+                    <li>Divide documentos grandes en secciones más pequeñas</li>
+                    <li>Convierte presentaciones a PDF para reducir el tamaño</li>
+                </ul>
+            </div>
+
+            <div class="file-size-info">
+                <div class="size-item">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span>PDFs optimizados: Recomendado</span>
+                </div>
+                <div class="size-item">
+                    <i class="fas fa-check-circle text-success me-2"></i>
+                    <span>Documentos comprimidos: Permitido</span>
+                </div>
+                <div class="size-item">
+                    <i class="fas fa-exclamation-triangle text-warning me-2"></i>
+                    <span>Límite máximo: 50MB por archivo</span>
+                </div>
+            </div>
+
+            <div class="error-actions">
+                <a href="{{ url_for('main.upload') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-upload me-2"></i>Intentar de nuevo
+                </a>
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-home me-2"></i>Ir al inicio
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .error-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            padding: var(--spacing-2xl) 0;
+        }
+
+        .error-content {
+            text-align: center;
+            max-width: 600px;
+            padding: var(--spacing-2xl);
+            background: white;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--gray-200);
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: var(--warning);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: 700;
+            color: var(--warning);
+            line-height: 1;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .error-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .error-description {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .error-suggestions {
+            text-align: left;
+            background-color: var(--gray-50);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-lg);
+            border: 1px solid var(--gray-200);
+        }
+
+        .error-suggestions h5 {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .error-suggestions ul {
+            margin: 0;
+            padding-left: var(--spacing-lg);
+        }
+
+        .error-suggestions li {
+            color: var(--gray-600);
+            margin-bottom: var(--spacing-xs);
+            line-height: 1.5;
+        }
+
+        .file-size-info {
+            background-color: #f8f9fa;
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-xl);
+            border: 1px solid var(--gray-200);
+        }
+
+        .size-item {
+            display: flex;
+            align-items: center;
+            padding: var(--spacing-xs) 0;
+            font-size: 0.9rem;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 576px) {
+            .error-content {
+                padding: var(--spacing-lg);
+                margin: 0 var(--spacing-md);
+            }
+
+            .error-code {
+                font-size: 4rem;
+            }
+
+            .error-title {
+                font-size: 1.5rem;
+            }
+
+            .error-actions {
+                flex-direction: column;
+            }
+
+            .size-item {
+                flex-direction: column;
+                text-align: center;
+                gap: var(--spacing-xs);
+            }
+        }
+        background: white;
+        border-radius: var(--border-radius-lg);
+        box-shadow: var(--shadow-lg);
+        border: 1px solid var(--gray-200);
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: var(--gray-300);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: 700;
+            color: var(--primary);
+            line-height: 1;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .error-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .error-description {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .error-suggestions {
+            text-align: left;
+            background-color: var(--gray-50);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-xl);
+            border: 1px solid var(--gray-200);
+        }
+
+        .error-suggestions h5 {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .error-suggestions ul {
+            margin: 0;
+            padding-left: var(--spacing-lg);
+        }
+
+        .error-suggestions li {
+            color: var(--gray-600);
+            margin-bottom: var(--spacing-xs);
+            line-height: 1.5;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 576px) {
+            .error-content {
+                padding: var(--spacing-lg);
+                margin: 0 var(--spacing-md);
+            }
+
+            .error-code {
+                font-size: 4rem;
+            }
+
+            .error-title {
+                font-size: 1.5rem;
+            }
+
+            .error-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+{% endblock %}

@@ -1,0 +1,412 @@
+{% extends "base.html" %}
+
+{% block title %}Subir Documentos - Sistema de Manuales{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="upload-header" data-aos="fade-up">
+    <div class="row align-items-center">
+        <div class="col-lg-8">
+            <h1 class="page-title">
+                <i class="fas fa-cloud-upload-alt me-3"></i>Subir Documentos
+            </h1>
+            <p class="page-subtitle">Añade uno o varios manuales y documentación al sistema de forma rápida y segura
+            </p>
+        </div>
+        <div class="col-lg-4 text-lg-end">
+            <div class="upload-progress-container" id="uploadProgressContainer" style="display: none;">
+                <div class="upload-progress-header">
+                    <span class="progress-label">Subiendo...</span>
+                    <span class="progress-percentage">0%</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar" id="uploadProgressBar" style="width: 0%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Form -->
+<div class="upload-container" data-aos="fade-up" data-aos-delay="100">
+    <form method="POST" enctype="multipart/form-data" class="upload-form" id="uploadForm">
+        {{ form.hidden_tag() }}
+
+        <!-- File Upload Area -->
+        <div class="file-upload-section">
+            <h5 class="section-title">
+                <i class="fas fa-file me-2"></i>Seleccionar Archivos
+            </h5>
+
+            <div class="file-drop-zone" id="fileDropZone">
+                <!-- Zona vacía (cuando no hay archivos) -->
+                <div class="empty-drop-zone" id="emptyDropZone">
+                    <div class="drop-zone-content">
+                        <div class="drop-zone-icon">
+                            <i class="fas fa-cloud-upload-alt"></i>
+                        </div>
+                        <h6 class="drop-zone-title">Arrastra tus archivos aquí</h6>
+                        <p class="drop-zone-subtitle">o haz clic para seleccionar</p>
+                        <button type="button" class="btn btn-outline-primary mt-2" id="selectFilesBtn">
+                            <i class="fas fa-folder-open me-1"></i>Seleccionar archivos
+                        </button>
+                        <div class="file-types-info mt-3">
+                            <p class="supported-formats">Formatos soportados:</p>
+                            <div class="format-badges">
+                                <span class="format-badge format-pdf">PDF</span>
+                                <span class="format-badge format-word">Word</span>
+                                <span class="format-badge format-excel">Excel</span>
+                                <span class="format-badge format-powerpoint">PowerPoint</span>
+                                <span class="format-badge format-text">Texto</span>
+                            </div>
+                            <p class="size-limit">Tamaño máximo por archivo: 50MB</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Zona con archivos -->
+                <div class="files-drop-zone" id="filesDropZone" style="display:none;">
+                    <div class="files-header">
+                        <div class="files-count" id="filesCount">0 archivos seleccionados</div>
+                        <div>
+                            <button type="button" class="btn btn-outline-primary btn-sm me-2" id="addMoreFilesBtn">
+                                <i class="fas fa-plus me-1"></i>Añadir más
+                            </button>
+                            <button type="button" class="clear-all-btn" id="clearAllBtn">
+                                <i class="fas fa-trash me-1"></i>Limpiar todo
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Vista previa de archivos seleccionados -->
+                    <div class="file-preview-list" id="filePreviewList"></div>
+                </div>
+
+                <!-- Input de archivos oculto -->
+                <input type="file" id="fileInput" name="archivos" multiple style="display: none;" />
+            </div>
+                {% if form.archivos.errors %}
+            <div class="error-messages">
+                {% for error in form.archivos.errors %}
+                <div class="error-message">
+                    <i class="fas fa-exclamation-triangle me-2"></i>{{ error }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Document Information (aplica a todos los archivos) -->
+        <div class="document-info-section">
+            <h5 class="section-title">
+                <i class="fas fa-info-circle me-2"></i>Información de los Documentos
+            </h5>
+            <div class="row g-4">
+                <div class="col-12">
+                    <div class="form-group">
+                        {{ form.titulo.label(class="form-label required") }}
+                        {{ form.titulo(class="form-control form-control-enhanced", placeholder="Ej: Manual de Usuario - Sistema CRM v2.0") }}
+                        {% if form.titulo.errors %}
+                        <div class="field-errors">
+                            {% for error in form.titulo.errors %}
+                            <div class="field-error">
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="field-help">
+                            <i class="fas fa-info-circle me-1"></i>
+                            Utiliza un título descriptivo y específico para facilitar las búsquedas
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.categoria_id.label(class="form-label required") }}
+                        <div class="select-wrapper">
+                            {{ form.categoria_id(class="form-select form-select-enhanced") }}
+                            <i class="fas fa-chevron-down select-icon"></i>
+                        </div>
+                        {% if form.categoria_id.errors %}
+                        <div class="field-errors">
+                            {% for error in form.categoria_id.errors %}
+                            <div class="field-error">
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="field-help">
+                            <i class="fas fa-tag me-1"></i>
+                            Selecciona la categoría más apropiada para los documentos
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="form-group">
+                        {{ form.descripcion.label(class="form-label required") }}
+                        {{ form.descripcion(class="form-control form-control-enhanced", placeholder="Breve descripción de los documentos") }}
+                        {% if form.descripcion.errors %}
+                        <div class="field-errors">
+                            {% for error in form.descripcion.errors %}
+                            <div class="field-error">
+                                <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                            </div>
+                            {% endfor %}
+                        </div>
+                        {% endif %}
+                        <div class="field-help">
+                            <i class="fas fa-align-left me-1"></i>
+                            Resume el contenido para facilitar la búsqueda
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="form-actions mt-4 text-end">
+            <button type="submit" class="btn btn-primary btn-lg">
+                <i class="fas fa-cloud-upload-alt me-2"></i>Subir Documentos
+            </button>
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary btn-lg ms-2">
+                <i class="fas fa-arrow-left me-2"></i>Cancelar
+            </a>
+        </div>
+    </form>
+</div>
+
+<!-- Modal para información de pack/manuales -->
+<div class="modal fade" id="packInfoModal" tabindex="-1" aria-labelledby="packInfoModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="packInfoModalLabel">Información del pack</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+      </div>
+      <div class="modal-body" id="packInfoContent"></div>
+    </div>
+  </div>
+</div>
+
+{% block extra_css %}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/upload.css') }}">
+{% endblock %}
+
+<script>
+// Sistema mejorado de drag & drop con mejor interfaz
+const fileInput = document.getElementById('fileInput');
+const fileDropZone = document.getElementById('fileDropZone');
+const filePreviewList = document.getElementById('filePreviewList');
+const selectFilesBtn = document.getElementById('selectFilesBtn');
+const addMoreFilesBtn = document.getElementById('addMoreFilesBtn');
+const clearAllBtn = document.getElementById('clearAllBtn');
+const emptyDropZone = document.getElementById('emptyDropZone');
+const filesDropZone = document.getElementById('filesDropZone');
+const filesCount = document.getElementById('filesCount');
+
+let selectedFiles = [];
+
+function bytesToSize(bytes) {
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    if (bytes === 0) return '0 Byte';
+    const i = parseInt(Math.floor(Math.log(bytes) / Math.log(1024)));
+    return Math.round(bytes / Math.pow(1024, i), 2) + ' ' + sizes[i];
+}
+
+function getFileIcon(extension) {
+    switch (extension.toLowerCase()) {
+        case 'pdf': return '<i class="fas fa-file-pdf text-danger"></i>';
+        case 'doc': case 'docx': return '<i class="fas fa-file-word text-primary"></i>';
+        case 'xls': case 'xlsx': return '<i class="fas fa-file-excel text-success"></i>';
+        case 'ppt': case 'pptx': return '<i class="fas fa-file-powerpoint text-warning"></i>';
+        case 'txt': return '<i class="fas fa-file-alt text-secondary"></i>';
+        default: return '<i class="fas fa-file text-info"></i>';
+    }
+}
+
+function updateFilesList() {
+    const dt = new DataTransfer();
+    selectedFiles.forEach(file => dt.items.add(file));
+    fileInput.files = dt.files;
+}
+
+function updateFilePreview() {
+    // Limpiar lista
+    filePreviewList.innerHTML = '';
+
+    if (selectedFiles.length === 0) {
+        // Mostrar zona vacía
+        emptyDropZone.style.display = 'block';
+        filesDropZone.style.display = 'none';
+        fileDropZone.classList.remove('has-files');
+        return;
+    }
+
+    // Mostrar zona con archivos
+    emptyDropZone.style.display = 'none';
+    filesDropZone.style.display = 'block';
+    fileDropZone.classList.add('has-files');
+
+    // Actualizar contador
+    filesCount.textContent = `${selectedFiles.length} archivo${selectedFiles.length > 1 ? 's' : ''} seleccionado${selectedFiles.length > 1 ? 's' : ''}`;
+
+    // Crear elementos de vista previa
+    selectedFiles.forEach((file, idx) => {
+        const ext = file.name.split('.').pop().toLowerCase();
+        const item = document.createElement('div');
+        item.className = 'file-preview-item';
+        item.innerHTML = `
+            <div class="preview-icon">${getFileIcon(ext)}</div>
+            <div class="file-info">
+                <div class="preview-filename">${file.name}</div>
+                <div class="preview-filesize">${bytesToSize(file.size)}</div>
+            </div>
+            <button type="button" class="remove-btn" title="Quitar archivo" data-index="${idx}">
+                <i class="fas fa-times"></i>
+            </button>
+        `;
+        filePreviewList.appendChild(item);
+    });
+
+    // Agregar event listeners a los botones de eliminar
+    filePreviewList.querySelectorAll('.remove-btn').forEach(btn => {
+        btn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            const index = parseInt(this.getAttribute('data-index'));
+            removeFileAt(index);
+        });
+    });
+}
+
+function removeFileAt(index) {
+    if (index >= 0 && index < selectedFiles.length) {
+        selectedFiles.splice(index, 1);
+        updateFilesList();
+        updateFilePreview();
+    }
+}
+
+function clearAllFiles() {
+    selectedFiles = [];
+    updateFilesList();
+    updateFilePreview();
+}
+
+function addFiles(newFiles) {
+    // Filtrar archivos duplicados por nombre
+    const existingNames = selectedFiles.map(f => f.name);
+    const uniqueFiles = Array.from(newFiles).filter(file => !existingNames.includes(file.name));
+
+    selectedFiles = selectedFiles.concat(uniqueFiles);
+    updateFilesList();
+    updateFilePreview();
+
+    if (uniqueFiles.length < newFiles.length) {
+        const duplicated = newFiles.length - uniqueFiles.length;
+        alert(`Se omitieron ${duplicated} archivo(s) duplicado(s).`);
+    }
+}
+
+// Event listeners
+fileInput.addEventListener('change', function() {
+    if (this.files.length > 0) {
+        addFiles(this.files);
+    }
+});
+
+selectFilesBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    fileInput.click();
+});
+
+addMoreFilesBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    fileInput.click();
+});
+
+clearAllBtn.addEventListener('click', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (confirm('¿Estás seguro de que quieres eliminar todos los archivos seleccionados?')) {
+        clearAllFiles();
+    }
+});
+
+// Drag & Drop
+fileDropZone.addEventListener('dragover', function(e) {
+    e.preventDefault();
+    this.classList.add('file-drop-zone-hover');
+});
+
+fileDropZone.addEventListener('dragleave', function(e) {
+    e.preventDefault();
+    this.classList.remove('file-drop-zone-hover');
+});
+
+fileDropZone.addEventListener('drop', function(e) {
+    e.preventDefault();
+    this.classList.remove('file-drop-zone-hover');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+        addFiles(files);
+    }
+});
+
+// Click en zona vacía para abrir selector (solo cuando no hay archivos)
+emptyDropZone.addEventListener('click', function(e) {
+    // Solo activar si el click no viene de un botón
+    if (e.target === this || e.target.closest('.drop-zone-content')) {
+        if (!e.target.closest('button')) {
+            fileInput.click();
+        }
+    }
+});
+
+// Validación del formulario
+const uploadForm = document.getElementById('uploadForm');
+uploadForm.addEventListener('submit', function(e) {
+    if (selectedFiles.length === 0) {
+        e.preventDefault();
+        alert('Debe seleccionar al menos un archivo.');
+        return false;
+    }
+});
+
+// Función existente para mostrar info de pack
+function showPackInfo(packId, manualId=null) {
+    fetch(`/api/pack_info/${packId}`)
+        .then(res => res.json())
+        .then(data => {
+            let html = `<h4 class='mb-3'><i class='fas fa-box'></i> ${data.nombre}</h4>`;
+            html += `<div class='mb-2 text-muted'>Fecha de creación: ${new Date(data.fecha_creacion).toLocaleString()}</div>`;
+            if (data.descripcion) html += `<div class='mb-2'><strong>Descripción:</strong> ${data.descripcion}</div>`;
+            html += `<hr><div class='row'>`;
+            data.manuales.forEach(manual => {
+                if (manualId && manual.id !== manualId) return;
+                html += `<div class='col-md-6 mb-3'>
+                    <div class='card shadow-sm'>
+                        <div class='card-body'>
+                            <h5 class='card-title'>${manual.titulo}</h5>
+                            <div class='mb-2'><strong>Tipo:</strong> ${manual.tipo_archivo.toUpperCase()}</div>
+                            <div class='mb-2'><strong>Fecha:</strong> ${new Date(manual.fecha_creacion).toLocaleString()}</div>
+                            <div class='mb-2'><strong>Descripción:</strong> ${manual.descripcion}</div>
+                            <a href='/download/${manual.archivo}' class='btn btn-primary mt-2'><i class='fas fa-download'></i> Descargar</a>
+                        </div>
+                    </div>
+                </div>`;
+            });
+            html += `</div>`;
+            document.getElementById('packInfoContent').innerHTML = html;
+            new bootstrap.Modal(document.getElementById('packInfoModal')).show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error al cargar la información del pack');
+        });
+}
+</script>
+{% endblock %}

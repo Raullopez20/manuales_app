@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sistema de Manuales{% endblock %}</title>
+
+    <!-- Favicon -->
+    <link rel="icon" href="{{ url_for('static', filename='img/favicon.ico') }}" type="image/x-icon">
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome: Iconos vectoriales -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Bootstrap Icons -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Animate.css -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <!-- AOS (Animate On Scroll) -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.css" rel="stylesheet">
+    <!-- Prism.js para syntax highlighting -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css" rel="stylesheet">
+    <!-- CSS principal extraído -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+<!-- Navegación -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container">
+
+    <a class="navbar-brand d-flex align-items-center" href="{{ url_for('main.index') }}">
+        <img src="{{ url_for('static', filename='img/navbar-docs.png') }}" alt="Logo GestorDocs" style="height:70px; width:auto; margin-right:4px; box-shadow:0 2px 8px rgba(52,152,219,0.07); background:transparent; object-fit:contain;">
+        <span style="vertical-align:middle; font-weight:900; font-size:1.8rem; color:white; letter-spacing:1px;">GestorDocs</span>
+    </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav me-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.index') }}">
+                        <i class="fas fa-home"></i> Inicio
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.upload') }}">
+                        <i class="fas fa-cloud-upload-alt"></i> Subir Manual
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.search') }}">
+                        <i class="fas fa-search"></i> Buscar
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.crear_categoria') }}">
+                        <i class="fas fa-folder-plus"></i> Crear Categoría
+                    </a>
+                </li>
+            </ul>
+
+            {% set is_admin = false %}
+            {% if session.get('user_id') %}
+                {% if session.get('is_admin') %}
+                    {% set is_admin = true %}
+                {% endif %}
+            {% endif %}
+
+            <ul class="navbar-nav align-items-center">
+                {% if is_admin %}
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('main.historial') }}">
+                        <i class="fas fa-history" style="color: white;"></i> Historial
+                    </a>
+                </li>
+                {% endif %}
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 rounded-pill bg-primary text-white shadow-sm"
+                       href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false"
+                       style="font-weight:500;">
+                        <i class="fas fa-user-circle fa-lg" style="color: white;"></i>
+                        <span>{{ session.get('username', 'Usuario') }}</span>
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end shadow" aria-labelledby="userDropdown">
+                        {% if is_admin %}
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ url_for('main.historial') }}">
+                                <i class="fas fa-history text-primary"></i>
+                                <span>Historial</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ url_for('main.listar_backups') }}">
+                                <i class="fas fa-database text-info"></i>
+                                <span>Backups</span>
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li>
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ url_for('main.logout') }}">
+                                <i class="fas fa-sign-out-alt text-danger"></i>
+                                <span>Cerrar sesión</span>
+                            </a>
+                        </li>
+                    </ul>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<!-- Espaciador para evitar que el contenido choque con el navbar -->
+<header style="height: 70px;"></header>
+
+<!-- Mensajes -->
+{% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+        <div class="container mt-3">
+            {% for category, message in messages %}
+                <div class="alert alert-{{ 'danger' if category == 'error' else 'success' }} alert-dismissible fade show animate__animated animate__fadeInDown">
+                    <i class="fas fa-{{ 'exclamation-triangle' if category == 'error' else 'check-circle' }} me-2"></i>
+                    {{ message }}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                </div>
+            {% endfor %}
+        </div>
+    {% endif %}
+{% endwith %}
+
+<!-- Contenedor principal (navbar y contenido) -->
+<div class="{% block container_class %}container{% endblock %}">
+    <main class="main-wrapper">
+        <div class="{% block inner_container_class %}container-main{% endblock %} animate__animated animate__fadeIn">
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+</div>
+
+
+<!-- Bootstrap 5 JavaScript -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- AOS (Animate On Scroll) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/aos/2.3.4/aos.js"></script>
+<!-- Prism.js for syntax highlighting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+
+<script>
+    // Initialize AOS
+    AOS.init({
+        duration: 800,
+        easing: 'ease-out-cubic',
+        once: true
+    });
+
+    // Initialize tooltips
+    document.addEventListener('DOMContentLoaded', function () {
+        var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+            return new bootstrap.Tooltip(tooltipTriggerEl);
+        });
+    });
+
+    // Add smooth scrolling
+    document.documentElement.style.scrollBehavior = 'smooth';
+
+    // Auto-dismiss alerts
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(function() {
+            var alerts = document.querySelectorAll('.alert.alert-dismissible');
+            alerts.forEach(function(alert) {
+                var closeButton = alert.querySelector('.btn-close');
+                if (closeButton) {
+                    closeButton.click();
+                }
+            });
+        }, 5000);
+    });
+
+    // Enhanced file upload feedback
+    function setupFileUpload() {
+        const fileInputs = document.querySelectorAll('input[type="file"]');
+        fileInputs.forEach(input => {
+            input.addEventListener('change', function() {
+                const fileName = this.files[0]?.name;
+                if (fileName) {
+                    const label = this.closest('.custom-file-upload') || this.nextElementSibling;
+                    if (label) {
+                        label.innerHTML = `<i class="fas fa-check-circle me-2"></i>Archivo seleccionado: ${fileName}`;
+                        label.style.background = 'linear-gradient(135deg, var(--success) 0%, #66bb6a 100%)';
+                    }
+                }
+            });
+        });
+    }
+
+    // Initialize on DOM load
+    document.addEventListener('DOMContentLoaded', setupFileUpload);
+
+    // Smooth form submission feedback
+    function addLoadingState(button) {
+        const originalText = button.innerHTML;
+        button.innerHTML = '<span class="loading-spinner me-2"></span>Procesando...';
+        button.disabled = true;
+
+        // Re-enable after 3 seconds (fallback)
+        setTimeout(() => {
+            button.innerHTML = originalText;
+            button.disabled = false;
+        }, 3000);
+    }
+
+    // Add loading states to forms
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', function() {
+            const submitBtn = form.querySelector('button[type="submit"], input[type="submit"]');
+            if (submitBtn) {
+                addLoadingState(submitBtn);
+            }
+        });
+    });
+</script>
+
+{% block extra_js %}
+    <script src="{{ url_for('static', filename='js/document_modals.js') }}"></script>
+{% endblock %}
+
+{% block footer %}
+<footer class="document-footer bg-light border-top mt-5 py-4 text-center text-muted" style="font-size:0.95rem;">
+    <div class="container">
+        <span>Sistema de Manuales &copy; {{ year if year else '2025' }} | Desarrollado por el área de Informática</span>
+    </div>
+</footer>
+{% endblock %}
+</body>
+</html>

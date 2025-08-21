@@ -1,0 +1,226 @@
+{% extends 'base.html' %}
+
+{% block title %}Crear Categoría - Sistema de Manuales{% endblock %}
+
+{% block content %}
+    <!-- Header Section -->
+    <div class="category-header" data-aos="fade-up">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="page-title">
+                    <i class="fas fa-tag me-3"></i>Nueva Categoría
+                </h1>
+                <p class="page-subtitle">Organiza tus documentos creando categorías personalizadas para una mejor gestión</p>
+            </div>
+            <div class="col-lg-4 text-lg-end">
+                <div class="header-stats">
+                    <div class="stat-item">
+                        <span class="stat-number">{{ all_categories|length if all_categories else 0 }}</span>
+                        <span class="stat-label">Categorías existentes</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Category Form -->
+    <div class="category-form-container" data-aos="fade-up" data-aos-delay="100">
+        <form method="POST" class="category-form">
+            {{ form.hidden_tag() }}
+
+            <div class="form-header">
+                <h5 class="form-title">
+                    <i class="fas fa-info-circle me-2"></i>Información de la Categoría
+                </h5>
+                <p class="form-description">Complete los campos para crear una nueva categoría de documentos</p>
+            </div>
+
+            <div class="form-body">
+                <div class="row g-4">
+                    <div class="col-12">
+                        <div class="form-group">
+                            {{ form.nombre.label(class="form-label required") }}
+                            {{ form.nombre(class="form-control form-control-enhanced", placeholder="Ej: Manuales de Usuario, Procedimientos, Políticas...") }}
+                            {% if form.nombre.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.nombre.errors %}
+                                        <div class="field-error">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="field-help">
+                                <i class="fas fa-lightbulb me-1"></i>
+                                Utiliza nombres descriptivos y únicos para facilitar la organización
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-group">
+                            {{ form.descripcion.label(class="form-label") }}
+                            {{ form.descripcion(class="form-control form-control-enhanced", placeholder="Describe brevemente el tipo de documentos que contendrá esta categoría") }}
+                            {% if form.descripcion.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.descripcion.errors %}
+                                        <div class="field-error">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                            <div class="field-help">
+                                <i class="fas fa-align-left me-1"></i>
+                                Ayuda a otros usuarios a entender qué tipo de documentos van en esta categoría
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-actions">
+                {{ form.submit(class="btn btn-primary btn-lg") }}
+                <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Existing Categories Preview -->
+    {% if all_categories %}
+        <div class="existing-categories" data-aos="fade-up" data-aos-delay="200">
+            <div class="section-header">
+                <h5 class="section-title">
+                    <i class="fas fa-list me-2"></i>Categorías Existentes
+                </h5>
+                <span class="badge badge-primary">{{ all_categories|length }} categoría{{ 's' if all_categories|length != 1 else '' }}</span>
+            </div>
+
+            <div class="categories-grid">
+                {% for categoria in all_categories %}
+                    <div class="category-preview-card" data-aos="fade-up" data-aos-delay="{{ loop.index * 50 + 250 }}">
+                        <div class="category-icon">
+                            <i class="fas fa-folder"></i>
+                        </div>
+                        <div class="category-info">
+                            <h6 class="category-name">{{ categoria.nombre }}</h6>
+                            {% if categoria.descripcion %}
+                                <p class="category-description">{{ categoria.descripcion[:100] }}{% if categoria.descripcion|length > 100 %}...{% endif %}</p>
+                            {% else %}
+                                <p class="category-description text-muted">Sin descripción</p>
+                            {% endif %}
+                            <div class="category-meta">
+                                <span class="meta-item">
+                                    <i class="fas fa-file-alt me-1"></i>
+                                    {{ categoria.total_manuales }} documento{{ 's' if categoria.total_manuales != 1 else '' }}
+                                </span>
+                                <span class="meta-item">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    {{ categoria.fecha_creacion.strftime('%d/%m/%Y') }}
+                                </span>
+                            </div>
+                            <!-- Botones de acciones de categoría -->
+                            <div class="category-actions mt-3">
+                                {% if is_admin or categoria.usuario_id == session['user_id'] %}
+                                    <form method="GET" action="{{ url_for('main.editar_categoria', categoria_id=categoria.id) }}" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-warning me-2">
+                                            <i class="fas fa-edit"></i> Editar
+                                        </button>
+                                    </form>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('main.eliminar_categoria', categoria_id=categoria.id) }}" style="display:inline;" onsubmit="return confirm('¿Seguro que deseas eliminar esta categoría y todos sus documentos?');">
+                                    <button type="submit" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash-alt"></i> Eliminar
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+
+    {% block extra_css %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/crear_categoria.css') }}">
+    {% endblock %}
+
+    {% block extra_js %}
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Auto-focus en el campo nombre
+                const nombreField = document.getElementById('nombre');
+                if (nombreField) {
+                    nombreField.focus();
+                }
+
+                // Contador de caracteres para descripción
+                const descripcionField = document.getElementById('descripcion');
+                if (descripcionField) {
+                    const maxLength = 300;
+                    const counter = document.createElement('div');
+                    counter.className = 'character-counter';
+                    counter.style.cssText = 'font-size: 0.75rem; color: var(--gray-500); text-align: right; margin-top: 0.25rem;';
+
+                    const updateCounter = () => {
+                        const remaining = maxLength - descripcionField.value.length;
+                        counter.textContent = `${remaining} caracteres restantes`;
+
+                        if (remaining < 50) {
+                            counter.style.color = 'var(--warning)';
+                        } else if (remaining < 20) {
+                            counter.style.color = 'var(--error)';
+                        } else {
+                            counter.style.color = 'var(--gray-500)';
+                        }
+                    };
+
+                    descripcionField.parentNode.appendChild(counter);
+                    descripcionField.addEventListener('input', updateCounter);
+                    updateCounter();
+                }
+
+                // Validación en tiempo real del nombre
+                const nombreInput = document.getElementById('nombre');
+                if (nombreInput) {
+                    nombreInput.addEventListener('input', function() {
+                        const value = this.value.trim();
+                        const helpText = this.parentNode.querySelector('.field-help');
+
+                        if (value.length < 3) {
+                            helpText.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>El nombre debe tener al menos 3 caracteres';
+                            helpText.style.color = 'var(--warning)';
+                        } else if (value.length > 100) {
+                            helpText.innerHTML = '<i class="fas fa-exclamation-triangle me-1"></i>El nombre no puede exceder 100 caracteres';
+                            helpText.style.color = 'var(--error)';
+                        } else {
+                            helpText.innerHTML = '<i class="fas fa-lightbulb me-1"></i>Utiliza nombres descriptivos y únicos para facilitar la organización';
+                            helpText.style.color = 'var(--gray-500)';
+                        }
+                    });
+                }
+
+                // Animación de envío del formulario
+                const form = document.querySelector('.category-form');
+                if (form) {
+                    form.addEventListener('submit', function() {
+                        const submitBtn = form.querySelector('button[type="submit"]');
+                        if (submitBtn) {
+                            const originalText = submitBtn.innerHTML;
+                            submitBtn.innerHTML = '<span class="loading-spinner me-2"></span>Creando categoría...';
+                            submitBtn.disabled = true;
+
+                            // Re-habilitar después de 5 segundos por si hay error
+                            setTimeout(() => {
+                                submitBtn.innerHTML = originalText;
+                                submitBtn.disabled = false;
+                            }, 5000);
+                        }
+                    });
+                }
+            });
+        </script>
+    {% endblock %}
+{% endblock %}

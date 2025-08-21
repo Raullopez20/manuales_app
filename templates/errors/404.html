@@ -1,0 +1,138 @@
+{% extends "base.html" %}
+
+{% block title %}Página no encontrada - Sistema de Manuales{% endblock %}
+
+{% block content %}
+    <div class="error-container" data-aos="fade-up">
+        <div class="error-content">
+            <div class="error-icon">
+                <i class="fas fa-search"></i>
+            </div>
+            <div class="error-code">404</div>
+            <h1 class="error-title">Página no encontrada</h1>
+            <p class="error-description">
+                Lo sentimos, no pudimos encontrar la página que buscas.
+                Es posible que haya sido movida, eliminada o que la URL sea incorrecta.
+            </p>
+
+            <div class="error-suggestions">
+                <h5>¿Qué puedes hacer?</h5>
+                <ul>
+                    <li>Verifica que la URL esté escrita correctamente</li>
+                    <li>Regresa a la página principal y navega desde allí</li>
+                    <li>Usa la función de búsqueda para encontrar lo que necesitas</li>
+                    <li>Contacta al administrador si crees que esto es un error</li>
+                </ul>
+            </div>
+
+            <div class="error-actions">
+                <a href="{{ url_for('main.index') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-home me-2"></i>Ir al inicio
+                </a>
+                <a href="{{ url_for('main.search') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-search me-2"></i>Buscar documentos
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .error-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 60vh;
+            padding: var(--spacing-2xl) 0;
+        }
+
+        .error-content {
+            text-align: center;
+            max-width: 600px;
+            padding: var(--spacing-2xl);
+            background: white;
+            border-radius: var(--border-radius-lg);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--gray-200);
+        }
+
+        .error-icon {
+            font-size: 4rem;
+            color: var(--error);
+            margin-bottom: var(--spacing-lg);
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: 700;
+            color: var(--error);
+            line-height: 1;
+            margin-bottom: var(--spacing-md);
+        }
+
+        .error-title {
+            font-size: 2rem;
+            font-weight: 600;
+            color: var(--gray-800);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .error-description {
+            font-size: 1.125rem;
+            color: var(--gray-600);
+            line-height: 1.6;
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .error-suggestions {
+            text-align: left;
+            background-color: var(--gray-50);
+            padding: var(--spacing-lg);
+            border-radius: var(--border-radius);
+            margin-bottom: var(--spacing-xl);
+            border: 1px solid var(--gray-200);
+        }
+
+        .error-suggestions h5 {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: var(--spacing-md);
+        }
+
+        .error-suggestions ul {
+            margin: 0;
+            padding-left: var(--spacing-lg);
+        }
+
+        .error-suggestions li {
+            color: var(--gray-600);
+            margin-bottom: var(--spacing-xs);
+            line-height: 1.5;
+        }
+
+        .error-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        @media (max-width: 576px) {
+            .error-content {
+                padding: var(--spacing-lg);
+                margin: 0 var(--spacing-md);
+            }
+
+            .error-code {
+                font-size: 4rem;
+            }
+
+            .error-title {
+                font-size: 1.5rem;
+            }
+
+            .error-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+{% endblock %}

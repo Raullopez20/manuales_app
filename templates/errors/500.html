@@ -1,0 +1,141 @@
+{% extends "base.html" %}
+
+{% block title %}Error del servidor - Sistema de Manuales{% endblock %}
+
+{% block content %}
+<div class="error-container" data-aos="fade-up">
+    <div class="error-content">
+        <div class="error-icon">
+            <i class="fas fa-exclamation-triangle"></i>
+        </div>
+        <div class="error-code">500</div>
+        <h1 class="error-title">Error interno del servidor</h1>
+        <p class="error-description">
+            Algo salió mal en nuestros servidores. Nuestro equipo técnico ha sido notificado
+            y está trabajando para resolver el problema lo antes posible.
+        </p>
+
+        <div class="error-suggestions">
+            <h5>¿Qué puedes hacer mientras tanto?</h5>
+            <ul>
+                <li>Intenta recargar la página en unos minutos</li>
+                <li>Regresa a la página principal</li>
+                <li>Si el problema persiste, contacta al administrador del sistema</li>
+                <li>Verifica tu conexión a internet</li>
+            </ul>
+        </div>
+
+        <div class="error-actions">
+            <button onclick="location.reload()" class="btn btn-primary btn-lg">
+                <i class="fas fa-redo-alt me-2"></i>Reintentar
+            </button>
+            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary btn-lg">
+                <i class="fas fa-home me-2"></i>Ir al inicio
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}">
+        <style>
+            .error-container {
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 60vh;
+                padding: var(--spacing-2xl) 0;
+            }
+
+            .error-content {
+                text-align: center;
+                max-width: 600px;
+                padding: var(--spacing-2xl);
+                background: white;
+                border-radius: var(--border-radius-lg);
+                box-shadow: var(--shadow-lg);
+                border: 1px solid var(--gray-200);
+            }
+
+            .error-icon {
+                font-size: 4rem;
+                color: var(--error);
+                margin-bottom: var(--spacing-lg);
+            }
+
+            .error-code {
+                font-size: 6rem;
+                font-weight: 700;
+                color: var(--error);
+                line-height: 1;
+                margin-bottom: var(--spacing-md);
+            }
+
+            .error-title {
+                font-size: 2rem;
+                font-weight: 600;
+                color: var(--gray-800);
+                margin-bottom: var(--spacing-md);
+            }
+
+            .error-description {
+                font-size: 1.125rem;
+                color: var(--gray-600);
+                line-height: 1.6;
+                margin-bottom: var(--spacing-xl);
+            }
+
+            .error-suggestions {
+                text-align: left;
+                background-color: var(--gray-50);
+                padding: var(--spacing-lg);
+                border-radius: var(--border-radius);
+                margin-bottom: var(--spacing-xl);
+                border: 1px solid var(--gray-200);
+            }
+
+            .error-suggestions h5 {
+                font-weight: 600;
+                color: var(--gray-700);
+                margin-bottom: var(--spacing-md);
+            }
+
+            .error-suggestions ul {
+                margin: 0;
+                padding-left: var(--spacing-lg);
+            }
+
+            .error-suggestions li {
+                color: var(--gray-600);
+                margin-bottom: var(--spacing-xs);
+                line-height: 1.5;
+            }
+
+            .error-actions {
+                display: flex;
+                gap: var(--spacing-md);
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            @media (max-width: 576px) {
+                .error-content {
+                    padding: var(--spacing-lg);
+                    margin: 0 var(--spacing-md);
+                }
+
+                .error-code {
+                    font-size: 4rem;
+                }
+
+                .error-title {
+                    font-size: 1.5rem;
+                }
+
+                .error-actions {
+                    flex-direction: column;
+                }
+            }
+        </style>
+{% endblock %}

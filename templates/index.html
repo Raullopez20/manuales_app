@@ -1,0 +1,987 @@
+    {% extends "base.html" %}
+
+    {% block title %}Dashboard - Gestor de Manuales{% endblock %}
+
+    {% block content %}
+        <!-- Hero Section -->
+        <div class="hero-section mb-5" data-aos="fade-up">
+            <div class="row align-items-center">
+                <div class="col-lg-8">
+                    <h1 class="display-4 fw-bold text-primary mb-3">
+                        <i class="fas fa-database me-3"></i>Gestor de Documentación
+                    </h1>
+                    <p class="lead text-muted mb-4">Gestiona y accede a todos los manuales técnicos y documentación
+                        corporativa de forma centralizada y eficiente.</p>
+
+                    <!-- Stats Cards -->
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-icon">
+                                    <i class="fas fa-file-alt"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-number">{{ stats.total_documentos if stats else 0 }}</h3>
+                                    <p class="stat-label">Documentos</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-icon bg-success">
+                                    <i class="fas fa-clock"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-number">24/7</h3>
+                                    <p class="stat-label">Disponibilidad</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="stat-card">
+                                <div class="stat-icon bg-info">
+                                    <i class="fas fa-search"></i>
+                                </div>
+                                <div class="stat-content">
+                                    <h3 class="stat-number">AI</h3>
+                                    <p class="stat-label">Búsqueda</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-4 text-center">
+                    <div class="hero-illustration">
+                        <img src="{{ url_for('static', filename='img/hero-docs.png') }}"
+                             alt="Centro de Documentación"
+                             class="img-fluid"
+                             style="max-width: 320px; width: 100%; height: auto; object-fit: contain;">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- Main Content -->
+            <div class="col-xl-8 col-lg-7">
+                <!-- Quick Actions -->
+                <div class="action-panel mb-4" data-aos="fade-up" data-aos-delay="100">
+                    <h5 class="section-title">
+                        <i class="fas fa-bolt me-2"></i>Acciones Rápidas
+                    </h5>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <a href="{{ url_for('main.upload') }}" class="action-card action-card-primary">
+                                <div class="action-icon">
+                                    <i class="fas fa-cloud-upload-alt"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h6>Subir Documento</h6>
+                                    <small>Añadir nuevo manual o documentación</small>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                        </div>
+                        <div class="col-md-6">
+                            <a href="{{ url_for('main.search') }}" class="action-card action-card-secondary">
+                                <div class="action-icon">
+                                    <i class="fas fa-search-plus"></i>
+                                </div>
+                                <div class="action-content">
+                                    <h6>Búsqueda Avanzada</h6>
+                                    <small>Encuentra documentos específicos de manera rápida y eficiente</small>
+                                </div>
+                                <i class="fas fa-arrow-right action-arrow"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Documents -->
+                {% if manuales %}
+                    <div class="documents-section" data-aos="fade-up" data-aos-delay="200">
+                        <div class="section-header">
+                            <h5 class="section-title">
+                                <i class="fas fa-history me-2"></i>Documentos Recientes
+                            </h5>
+                            <div class="section-actions">
+                                <a href="{{ url_for('main.search') }}" class="btn btn-outline-primary btn-sm">
+                                    <i class="fas fa-arrow-right me-1"></i>Ver Todos
+                                </a>
+                            </div>
+                        </div>
+
+                        {% set pagina = request.args.get('pagina', 1) | int %}
+                        {% set por_pagina = 6 %}
+                        {% set total_documentos = manuales|length %}
+                        {% set total_paginas = (total_documentos // por_pagina) + (1 if total_documentos % por_pagina > 0 else 0) %}
+                        {% set inicio = (pagina - 1) * por_pagina %}
+                        {% set fin = inicio + por_pagina %}
+
+                        <div class="documents-grid">
+                            {% for manual in manuales[inicio:fin] %}
+                                {% set extension = manual.archivo.split('.')[-1].lower() %}
+                                <div class="document-card" data-aos="zoom-in" data-aos-delay="{{ loop.index * 50 }}">
+                                    <div class="document-header">
+                                        <div class="file-icon-container">
+                                            {% if extension == 'pdf' %}
+                                                <div class="file-icon file-icon-pdf">
+                                                    <i class="fas fa-file-pdf"></i>
+                                                </div>
+                                            {% elif extension in ['doc', 'docx'] %}
+                                                <div class="file-icon file-icon-word">
+                                                    <i class="fas fa-file-word"></i>
+                                                </div>
+                                            {% elif extension in ['xls', 'xlsx'] %}
+                                                <div class="file-icon file-icon-excel">
+                                                    <i class="fas fa-file-excel"></i>
+                                                </div>
+                                            {% elif extension in ['ppt', 'pptx'] %}
+                                                <div class="file-icon file-icon-powerpoint">
+                                                    <i class="fas fa-file-powerpoint"></i>
+                                                </div>
+                                            {% elif extension in ['jpg', 'jpeg', 'png', 'gif'] %}
+                                                <div class="file-icon file-icon-image">
+                                                    <i class="fas fa-file-image"></i>
+                                                </div>
+                                            {% elif extension in ['zip', 'rar', '7z'] %}
+                                                <div class="file-icon file-icon-archive">
+                                                    <i class="fas fa-file-archive"></i>
+                                                </div>
+                                            {% else %}
+                                                <div class="file-icon file-icon-default">
+                                                    <i class="fas fa-file-alt"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+
+                                        <div class="document-actions">
+                                            <div class="dropdown">
+                                                <button class="btn btn-sm btn-ghost" data-bs-toggle="dropdown">
+                                                    <i class="fas fa-ellipsis-v"></i>
+                                                </button>
+                                                <ul class="dropdown-menu dropdown-menu-end">
+                                                    <li>
+                                                        <a class="dropdown-item"
+                                                           href="{{ url_for('main.download', filename=manual.archivo) }}">
+                                                            <i class="fas fa-download me-2"></i>Descargar
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#"
+                                                           onclick="previewDocument('{{ manual.archivo }}', '{{ extension }}')">
+                                                            <i class="fas fa-eye me-2"></i>Vista previa
+                                                        </a>
+                                                    </li>
+                                                    <li>
+                                                        <a class="dropdown-item" href="#"
+                                                           onclick="shareDocument('{{ manual.titulo }}', '{{ manual.archivo }}')">
+                                                            <i class="fas fa-share me-2"></i>Compartir
+                                                        </a>
+                                                    </li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="document-content">
+                                        <h6 class="document-title">{{ manual.titulo }}</h6>
+                                        <p class="document-description">
+                                            {{ manual.descripcion[:120] }}{% if manual.descripcion|length > 120 %}...{% endif %}
+                                        </p>
+
+                                        <div class="document-meta">
+                                            <div class="meta-row">
+                                                <span class="meta-item">
+                                                    <i class="fas fa-calendar-alt me-1"></i>
+                                                    {{ manual.fecha_creacion.strftime('%d %b %Y') }}
+                                                </span>
+                                                {% if manual.categoria %}
+                                                    <span class="meta-item">
+                                                        <i class="fas fa-tag me-1"></i>
+                                                        {{ manual.categoria.nombre }}
+                                                    </span>
+                                                {% endif %}
+                                            </div>
+                                            <div class="meta-row">
+                                                <span class="meta-item">
+                                                    <i class="fas fa-file me-1"></i>
+                                                    {{ extension.upper() }}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="document-footer">
+                                        <a href="{{ url_for('main.download', filename=manual.archivo) }}"
+                                           class="btn btn-primary btn-sm">
+                                            <i class="fas fa-download me-2"></i>Descargar
+                                        </a>
+                                        <button class="btn btn-outline-secondary btn-sm" onclick="previewDocument('{{ manual.archivo }}', '{{ extension }}')" title="Vista previa">
+                                            <i class="fas fa-eye me-2"></i>Vista previa
+                                        </button>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+
+                        <!-- Paginación igual que en search.html -->
+                        {% if total_documentos > por_pagina %}
+                            <div class="custom-pagination d-flex justify-content-center align-items-center mt-4 gap-3">
+                                <button type="button" class="btn btn-pagination pagination-blue {% if pagina <= 1 %}disabled{% endif %}"
+                                        onclick="window.location='?pagina={{ pagina - 1 }}'" aria-label="Anterior">
+                                    <span class="pagination-arrow text-primary"><i class="fas fa-angle-double-left"></i></span>
+                                </button>
+                                <span class="pagination-info">
+                                    Página <strong>{{ pagina }}</strong> de <strong>{{ total_paginas }}</strong>
+                                    &mdash; Mostrando <strong>{{ inicio + 1 }}</strong> a
+                                    <strong>{{ fin if fin < total_documentos else total_documentos }}</strong>
+                                    de <strong>{{ total_documentos }}</strong>
+                                </span>
+                                <button type="button" class="btn btn-pagination pagination-blue {% if pagina >= total_paginas %}disabled{% endif %}"
+                                        onclick="window.location='?pagina={{ pagina + 1 }}'" aria-label="Siguiente">
+                                    <span class="pagination-arrow text-primary"><i class="fas fa-angle-double-right"></i></span>
+                                </button>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% else %}
+                    <div class="empty-state" data-aos="fade-up">
+                        <div class="empty-icon">
+                            <i class="fas fa-file-plus"></i>
+                        </div>
+                        <h5 class="empty-title">No hay documentos</h5>
+                        <p class="empty-text">Comienza subiendo tu primer documento</p>
+                        <a href="{{ url_for('main.upload') }}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Añadir Documento
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+
+            <!-- Sidebar -->
+            <div class="col-xl-4 col-lg-5">
+                <!-- Quick Search -->
+                <div class="sidebar-card" data-aos="fade-left" data-aos-delay="150">
+                    <h5 class="card-title">
+                        <i class="fas fa-search me-2"></i>Búsqueda Rápida
+                    </h5>
+                    <form method="POST" action="{{ url_for('main.search') }}" class="quick-search-form">
+                        {{ search_form.hidden_tag() }}
+                        <div class="search-input-group">
+                            {{ search_form.termino(class="form-control search-input", placeholder="Buscar documentos...") }}
+                            <button type="submit" class="search-btn">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+
+                        <div class="search-filters mt-3">
+                            {{ search_form.categoria_id.label(class="form-label small") }}
+                            {{ search_form.categoria_id(class="form-select form-select-sm") }}
+                        </div>
+
+                        <div class="mt-3">
+                            {{ search_form.submit(class="btn btn-outline-primary btn-sm w-100") }}
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Categories Explorer -->
+                <div class="sidebar-card categories-explorer" data-aos="fade-left" data-aos-delay="200">
+                    <div class="card-header-custom">
+                        <h5 class="card-title mb-0">
+                            <i class="fas fa-layer-group me-2 text-primary"></i>Explorar Categorías
+                        </h5>
+                        <div class="categories-count">
+                            <span class="badge bg-primary text-white" id="visibleCategoriesCount">{{ categorias|length }} categorías</span>
+                        </div>
+                    </div>
+
+                    <div class="categories-grid" id="categoriesGrid">
+                        {% if categorias %}
+                            {% for categoria in categorias[:6] %}
+                                {% set categoria_docs = categoria.manuales|length %}
+                                {% set categoria_class = [
+                                'category-primary', 'category-success', 'category-warning',
+                                'category-info', 'category-purple', 'category-orange'
+                            ][loop.index0 % 6] %}
+                                <div class="category-card {{ categoria_class }}"
+                                     data-category-id="{{ categoria.id }}"
+                                     data-category-name="{{ categoria.nombre }}"
+                                     onclick="filterByCategory({{ categoria.id }}, '{{ categoria.nombre }}')">
+                                    <div class="category-icon">
+                                        {% set icon_map = {
+                                        'técnico': 'fas fa-cogs',
+                                        'usuario': 'fas fa-user-circle',
+                                        'instalación': 'fas fa-download',
+                                        'configuración': 'fas fa-sliders-h',
+                                        'troubleshooting': 'fas fa-tools',
+                                        'manual': 'fas fa-book',
+                                        'guía': 'fas fa-compass',
+                                        'procedimiento': 'fas fa-list-ol',
+                                        'política': 'fas fa-shield-alt',
+                                        'seguridad': 'fas fa-lock'
+                                    } %}
+                                        {% set categoria_lower = categoria.nombre.lower() %}
+                                        {% set icon_found = false %}
+                                        {% for key, icon in icon_map.items() %}
+                                            {% if key in categoria_lower and not icon_found %}
+                                                <i class="{{ icon }}"></i>
+                                                {% set icon_found = true %}
+                                            {% endif %}
+                                        {% endfor %}
+                                        {% if not icon_found %}
+                                            <i class="fas fa-folder-open"></i>
+                                        {% endif %}
+                                    </div>
+                                    <div class="category-content">
+                                        <h6 class="category-name">{{ categoria.nombre }}</h6>
+                                        <div class="category-stats">
+                                            <span class="docs-count">{{ categoria_docs }}</span>
+                                            <span class="docs-label">doc{{ 's' if categoria_docs != 1 else '' }}</span>
+                                        </div>
+                                    </div>
+                                    <div class="category-activity">
+                                        {% if categoria_docs > 5 %}
+                                            <span class="activity-indicator high" title="Muy activa (>5 docs)"><i class="fas fa-fire"></i></span>
+                                        {% elif categoria_docs > 2 %}
+                                            <span class="activity-indicator medium" title="Activa (3-5 docs)"><i class="fas fa-chart-line"></i></span>
+                                        {% else %}
+                                            <span class="activity-indicator low" title="Poca actividad (<3 docs)"><i class="fas fa-circle"></i></span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="category-hover-overlay">
+                                        <i class="fas fa-search-plus"></i>
+                                        <span>Explorar</span>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                            {% if categorias|length > 6 %}
+                                <div class="category-card category-more" onclick="showAllCategories()">
+                                    <div class="category-icon">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </div>
+                                    <div class="category-content">
+                                        <h6 class="category-name">Ver todas</h6>
+                                        <div class="category-stats">
+                                            <span class="docs-count">+{{ categorias|length - 6 }}</span>
+                                            <span class="docs-label">más</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endif %}
+                        {% else %}
+                            <div class="empty-categories">
+                                <div class="empty-icon">
+                                    <i class="fas fa-plus-circle"></i>
+                                </div>
+                                <p class="empty-text">No hay categorías creadas</p>
+                                <a href="{{ url_for('main.crear_categoria') }}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-plus me-1"></i>Crear primera categoría
+                                </a>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    {% if categorias %}
+                        <div class="categories-footer">
+                            <div class="row g-2">
+                                <div class="col-6">
+                                    <a href="{{ url_for('main.crear_categoria') }}" class="btn btn-outline-primary btn-sm w-100">
+                                        <i class="fas fa-plus me-1"></i>Nueva
+                                    </a>
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-outline-secondary btn-sm w-100" onclick="showCategoryManager()">
+                                        <i class="fas fa-cog me-1"></i>Gestionar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    {% endif %}
+                </div>
+
+                <!-- Quick Tips -->
+                <div class="sidebar-card" data-aos="fade-left" data-aos-delay="250">
+                    <h5 class="card-title">
+                        <i class="fas fa-lightbulb me-2"></i>Consejos Rápidos
+                    </h5>
+                    <div class="tips-list">
+                        <div class="tip-item">
+                            <i class="fas fa-tag tip-icon"></i>
+                            <span>Usa categorías para organizar mejor tus documentos</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-search tip-icon"></i>
+                            <span>La búsqueda incluye contenido dentro de los archivos</span>
+                        </div>
+                        <div class="tip-item">
+                            <i class="fas fa-cloud tip-icon"></i>
+                            <span>Todos los documentos se respaldan automáticamente</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de vista previa de documento -->
+        <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="previewModalLabel">Vista previa del documento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body" id="previewContent">
+                        <!-- Aquí se carga la vista previa por JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de compartir -->
+        <div class="modal fade" id="shareModal" tabindex="-1" aria-labelledby="shareModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="shareModalLabel">Compartir documento</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body" id="shareContent">
+                        <!-- Aquí se carga el contenido para compartir por JS -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de confirmación de eliminación -->
+        <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="deleteModalLabel">Confirmar eliminación</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body">
+                        ¿Seguro que deseas eliminar este documento? Esta acción no se puede deshacer.
+                    </div>
+                    <div class="modal-footer">
+                        <form id="deleteForm" method="POST">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="submit" class="btn btn-danger">Eliminar</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Modal de mensajes personalizados -->
+        <div class="modal fade" id="messageModal" tabindex="-1" aria-labelledby="messageModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="messageModalLabel">Mensaje</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                    </div>
+                    <div class="modal-body" id="messageContent">
+                        <!-- Aquí se muestra el mensaje personalizado -->
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Aceptar</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endblock %}
+
+    {% block extra_css %}
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/index.css') }}">
+    {% endblock %}
+
+    {% block extra_js %}
+        <script src="{{ url_for('static', filename='js/document_modals.js') }}"></script>
+        <script>
+            // Variables globales
+            let allCategories = [];
+
+            // Inicialización
+            document.addEventListener('DOMContentLoaded', function() {
+                // Aplicar configuración guardada
+                applyCategorySettings();
+
+                // Cargar todas las categorías para el gestor
+                loadAllCategories();
+            });
+
+            // Funcionalidad de categorías
+            function filterByCategory(categoryId, categoryName) {
+                const searchUrl = new URL('/search', window.location.origin);
+                searchUrl.searchParams.set('categoria_id', categoryId);
+                searchUrl.searchParams.set('filtered_by', categoryName);
+                window.location.href = searchUrl.toString();
+            }
+
+            // Cargar todas las categorías
+            function loadAllCategories() {
+                fetch('/api/categorias')
+                    .then(response => response.json())
+                    .then(categorias => {
+                        allCategories = categorias;
+                    })
+                    .catch(error => {
+                        console.error('Error loading categories:', error);
+                    });
+            }
+
+            // Mostrar todas las categorías en modal
+            function showAllCategories() {
+                const modal = document.createElement('div');
+                modal.className = 'modal fade categories-modal';
+                modal.setAttribute('tabindex', '-1');
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-xl modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-layer-group me-2"></i>Todas las Categorías
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div id="allCategoriesGrid" class="categories-grid">
+                                    <div class="text-center">
+                                        <i class="fas fa-spinner fa-spin fa-2x text-primary"></i>
+                                        <p class="mt-2">Cargando categorías...</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                <a href="{{ url_for('main.crear_categoria') }}" class="btn btn-primary">
+                                    <i class="fas fa-plus me-1"></i>Nueva Categoría
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                const bsModal = new bootstrap.Modal(modal);
+                bsModal.show();
+
+                // Cargar categorías
+                renderAllCategories();
+
+                // Limpiar modal cuando se cierre
+                modal.addEventListener('hidden.bs.modal', function() {
+                    document.body.removeChild(modal);
+                });
+            }
+
+            // Renderizar todas las categorías
+            function renderAllCategories() {
+                const grid = document.getElementById('allCategoriesGrid');
+
+                if (allCategories.length === 0) {
+                    grid.innerHTML = `
+                        <div class="empty-categories">
+                            <div class="empty-icon">
+                                <i class="fas fa-plus-circle"></i>
+                            </div>
+                            <p class="empty-text">No hay categorías creadas</p>
+                            <a href="{{ url_for('main.crear_categoria') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-1"></i>Crear primera categoría
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const savedSettings = JSON.parse(localStorage.getItem('categoryVisibility') || '{}');
+
+                grid.innerHTML = allCategories.map((categoria, index) => {
+                    const colors = ['category-primary', 'category-success', 'category-warning', 'category-info', 'category-purple', 'category-orange'];
+                    const colorClass = colors[index % colors.length];
+                    const docsCount = categoria.documentos_count || 0;
+                    const isVisible = savedSettings[categoria.id] !== false;
+
+                    // Mapeo de iconos
+                    const iconMap = {
+                        'técnico': 'fas fa-cogs',
+                        'usuario': 'fas fa-user-circle',
+                        'instalación': 'fas fa-download',
+                        'configuración': 'fas fa-sliders-h',
+                        'troubleshooting': 'fas fa-tools',
+                        'manual': 'fas fa-book',
+                        'guía': 'fas fa-compass',
+                        'procedimiento': 'fas fa-list-ol',
+                        'política': 'fas fa-shield-alt',
+                        'seguridad': 'fas fa-lock'
+                    };
+
+                    const categoryLower = categoria.nombre.toLowerCase();
+                    let icon = 'fas fa-folder-open';
+                    for (const [key, iconClass] of Object.entries(iconMap)) {
+                        if (categoryLower.includes(key)) {
+                            icon = iconClass;
+                            break;
+                        }
+                    }
+
+                    const style = isVisible ? '' : 'opacity: 0.5; filter: grayscale(50%);';
+
+                    return `
+                        <div class="category-card ${colorClass}"
+                             style="${style}"
+                             onclick="filterByCategory(${categoria.id}, '${categoria.nombre}')"
+                             data-aos="zoom-in" data-aos-delay="${index * 50}">
+                            <div class="category-icon">
+                                <i class="${icon}"></i>
+                            </div>
+                            <div class="category-content">
+                                <h6 class="category-name">${categoria.nombre}</h6>
+                                <div class="category-stats">
+                                    <span class="docs-count">${docsCount}</span>
+                                    <span class="docs-label">doc${docsCount !== 1 ? 's' : ''}</span>
+                                </div>
+                            </div>
+                            <div class="category-activity">
+                                ${docsCount > 5 ? '<span class="activity-indicator high"><i class="fas fa-fire"></i></span>' :
+                        docsCount > 2 ? '<span class="activity-indicator medium"><i class="fas fa-chart-line"></i></span>' :
+                            '<span class="activity-indicator low"><i class="fas fa-circle"></i></span>'}
+                            </div>
+                            <div class="category-hover-overlay">
+                                <i class="fas fa-search-plus"></i>
+                                <span>Explorar</span>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Re-inicializar AOS
+                if (typeof AOS !== 'undefined') {
+                    AOS.refresh();
+                }
+            }
+
+            // Mostrar gestor de categorías
+            function showCategoryManager() {
+                const modal = document.createElement('div');
+                modal.className = 'modal fade category-manager-modal';
+                modal.setAttribute('tabindex', '-1');
+                modal.innerHTML = `
+                    <div class="modal-dialog modal-lg modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">
+                                    <i class="fas fa-cog me-2"></i>Gestionar Categorías
+                                </h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <p class="text-muted">Selecciona las categorías que quieres mostrar en el dashboard:</p>
+                                    <div class="alert alert-info">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        <span id="categoryStatsText">Cargando estadísticas...</span>
+                                    </div>
+                                </div>
+                                <div id="categoryManagerList" class="list-group">
+                                    <div class="text-center py-3">
+                                        <i class="fas fa-spinner fa-spin"></i> Cargando categorías...
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-primary btn-sm" onclick="selectAllCategories()">
+                                    <i class="fas fa-check-square me-1"></i>Mostrar Todas
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-sm" onclick="deselectAllCategories()">
+                                    <i class="fas fa-square me-1"></i>Ocultar Todas
+                                </button>
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                <button type="button" class="btn btn-primary" onclick="saveCategorySettings()">
+                                    <i class="fas fa-save me-1"></i>Guardar Cambios
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+                const bsModal = new bootstrap.Modal(modal);
+                bsModal.show();
+
+                // Cargar categorías para el gestor
+                loadCategoriesForManager();
+
+                // Limpiar modal cuando se cierre
+                modal.addEventListener('hidden.bs.modal', function() {
+                    document.body.removeChild(modal);
+                });
+            }
+
+            // Cargar categorías para el gestor
+            function loadCategoriesForManager() {
+                if (allCategories.length === 0) {
+                    // Si no hay categorías cargadas, cargarlas
+                    fetch('/api/categorias')
+                        .then(response => response.json())
+                        .then(categorias => {
+                            allCategories = categorias;
+                            renderCategoriesForManager();
+                        })
+                        .catch(error => {
+                            console.error('Error loading categories:', error);
+                            showCategoryManagerError();
+                        });
+                } else {
+                    renderCategoriesForManager();
+                }
+            }
+
+            // Renderizar categorías para el gestor
+            function renderCategoriesForManager() {
+                const list = document.getElementById('categoryManagerList');
+
+                if (allCategories.length === 0) {
+                    list.innerHTML = `
+                        <div class="text-center py-4">
+                            <i class="fas fa-folder-plus fa-2x text-muted mb-2"></i>
+                            <p class="text-muted">No hay categorías para gestionar</p>
+                            <a href="{{ url_for('main.crear_categoria') }}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-plus me-1"></i>Crear Categoría
+                            </a>
+                        </div>
+                    `;
+                    return;
+                }
+
+                const savedSettings = JSON.parse(localStorage.getItem('categoryVisibility') || '{}');
+
+                // Actualizar estadísticas
+                updateCategoryStats(savedSettings);
+
+                list.innerHTML = allCategories.map((categoria, index) => {
+                    const colors = ['primary', 'success', 'warning', 'info', 'purple', 'orange'];
+                    const colorClass = colors[index % colors.length];
+                    const docsCount = categoria.documentos_count || 0;
+                    const isVisible = savedSettings[categoria.id] !== false; // Por defecto true
+
+                    // Mapeo de iconos
+                    const iconMap = {
+                        'técnico': 'fas fa-cogs',
+                        'usuario': 'fas fa-user-circle',
+                        'instalación': 'fas fa-download',
+                        'configuración': 'fas fa-sliders-h',
+                        'troubleshooting': 'fas fa-tools',
+                        'manual': 'fas fa-book',
+                        'guía': 'fas fa-compass',
+                        'procedimiento': 'fas fa-list-ol',
+                        'política': 'fas fa-shield-alt',
+                        'seguridad': 'fas fa-lock'
+                    };
+
+                    const categoryLower = categoria.nombre.toLowerCase();
+                    let icon = 'fas fa-folder-open';
+                    for (const [key, iconClass] of Object.entries(iconMap)) {
+                        if (categoryLower.includes(key)) {
+                            icon = iconClass;
+                            break;
+                        }
+                    }
+
+                    return `
+                        <div class="list-group-item d-flex align-items-center justify-content-between p-3">
+                            <div class="d-flex align-items-center">
+                                <div class="category-preview-mini category-${colorClass} me-3">
+                                    <i class="${icon}"></i>
+                                </div>
+                                <div>
+                                    <h6 class="mb-1">${categoria.nombre}</h6>
+                                    <small class="text-muted">${docsCount} documento${docsCount !== 1 ? 's' : ''}</small>
+                                </div>
+                            </div>
+                            <div class="form-check form-switch">
+                                <input class="form-check-input category-toggle"
+                                       type="checkbox"
+                                       id="cat_${categoria.id}"
+                                       data-category-id="${categoria.id}"
+                                       data-category-name="${categoria.nombre}"
+                                       ${isVisible ? 'checked' : ''}>
+                                <label class="form-check-label" for="cat_${categoria.id}">
+                                    ${isVisible ? 'Visible' : 'Oculta'}
+                                </label>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // Agregar listeners para los toggles
+                document.querySelectorAll('.category-toggle').forEach(toggle => {
+                    toggle.addEventListener('change', function() {
+                        const label = this.nextElementSibling;
+                        label.textContent = this.checked ? 'Visible' : 'Oculta';
+
+                        // Actualizar estadísticas en tiempo real
+                        const currentSettings = {};
+                        document.querySelectorAll('.category-toggle').forEach(t => {
+                            currentSettings[t.dataset.categoryId] = t.checked;
+                        });
+                        updateCategoryStats(currentSettings);
+                    });
+                });
+            }
+
+            // Actualizar estadísticas de categorías
+            function updateCategoryStats(settings) {
+                const total = allCategories.length;
+                const visible = Object.values(settings).filter(v => v !== false).length;
+                const hidden = total - visible;
+
+                const statsText = document.getElementById('categoryStatsText');
+                if (statsText) {
+                    statsText.textContent = `Total: ${total} categorías | Visibles: ${visible} | Ocultas: ${hidden}`;
+                }
+            }
+
+            // Mostrar error en el gestor de categorías
+            function showCategoryManagerError() {
+                const list = document.getElementById('categoryManagerList');
+                if (list) {
+                    list.innerHTML = `
+                        <div class="text-center py-4 text-danger">
+                            <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                            <p>Error al cargar las categorías</p>
+                            <button class="btn btn-outline-primary btn-sm" onclick="loadCategoriesForManager()">
+                                <i class="fas fa-redo me-1"></i>Reintentar
+                            </button>
+                        </div>
+                    `;
+                }
+            }
+
+            // Seleccionar todas las categorías
+            function selectAllCategories() {
+                document.querySelectorAll('.category-toggle').forEach(toggle => {
+                    toggle.checked = true;
+                    toggle.nextElementSibling.textContent = 'Visible';
+                });
+
+                // Actualizar estadísticas
+                const settings = {};
+                allCategories.forEach(cat => settings[cat.id] = true);
+                updateCategoryStats(settings);
+            }
+
+            // Deseleccionar todas las categorías
+            function deselectAllCategories() {
+                document.querySelectorAll('.category-toggle').forEach(toggle => {
+                    toggle.checked = false;
+                    toggle.nextElementSibling.textContent = 'Oculta';
+                });
+
+                // Actualizar estadísticas
+                const settings = {};
+                allCategories.forEach(cat => settings[cat.id] = false);
+                updateCategoryStats(settings);
+            }
+
+            // Guardar configuración de categorías
+            function saveCategorySettings() {
+                const settings = {};
+
+                document.querySelectorAll('.category-toggle').forEach(toggle => {
+                    const categoryId = toggle.dataset.categoryId;
+                    settings[categoryId] = toggle.checked;
+                });
+
+                // Guardar en localStorage
+                localStorage.setItem('categoryVisibility', JSON.stringify(settings));
+
+                // Aplicar cambios inmediatamente
+                applyCategorySettings();
+
+                // Cerrar modal
+                const modal = document.querySelector('.category-manager-modal');
+                if (modal) {
+                    const bsModal = bootstrap.Modal.getInstance(modal);
+                    bsModal.hide();
+                }
+
+                // Mostrar mensaje de éxito
+                showToast('Configuración guardada correctamente', 'success');
+            }
+
+            // Aplicar configuración de categorías guardada
+            function applyCategorySettings() {
+                const savedSettings = JSON.parse(localStorage.getItem('categoryVisibility') || '{}');
+
+                // Aplicar a las tarjetas de categorías
+                document.querySelectorAll('.category-card[data-category-id]').forEach(card => {
+                    const categoryId = card.dataset.categoryId;
+                    const isVisible = savedSettings[categoryId] !== false; // Por defecto true
+
+                    if (isVisible) {
+                        card.style.display = '';
+                        card.style.opacity = '1';
+                        card.style.filter = 'none';
+                    } else {
+                        card.style.display = 'none';
+                    }
+                });
+
+                // Actualizar contador de categorías visibles
+                updateVisibleCategoriesCount();
+            }
+
+            // Actualizar contador de categorías visibles
+            function updateVisibleCategoriesCount() {
+                const savedSettings = JSON.parse(localStorage.getItem('categoryVisibility') || '{}');
+                const visibleCards = document.querySelectorAll('.category-card[data-category-id]:not([style*="display: none"])').length;
+
+                const counter = document.getElementById('visibleCategoriesCount');
+                if (counter) {
+                    counter.textContent = `${visibleCards} categorías visibles`;
+                }
+            }
+
+            // Notificación toast simple
+            function showToast(message, type = 'info') {
+                // Remover toasts existentes
+                document.querySelectorAll('.simple-toast').forEach(toast => toast.remove());
+
+                // Crear nuevo toast
+                const toast = document.createElement('div');
+                toast.className = `simple-toast alert alert-${type === 'success' ? 'success' : 'info'} alert-dismissible fade show`;
+                toast.innerHTML = `
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : 'info-circle'} me-2"></i>
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                `;
+
+                document.body.appendChild(toast);
+
+                // Auto-remover después de 3 segundos
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.remove();
+                    }
+                }, 3000);
+            }
+
+            // Mostrar mensaje personalizado en modal
+            function showMessageModal(message, title = 'Mensaje') {
+                document.getElementById('messageModalLabel').innerText = title;
+                document.getElementById('messageContent').innerHTML = message;
+                var modal = new bootstrap.Modal(document.getElementById('messageModal'));
+                modal.show();
+            }
+
+            // Reemplazar alert() por showMessageModal en JS
+            window.alert = function(msg) { showMessageModal(msg); };
+        </script>
+    {% endblock %}

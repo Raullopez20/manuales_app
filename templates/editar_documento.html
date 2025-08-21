@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Editar Documento - Sistema de Manuales{% endblock %}
+
+{% block content %}
+    <!-- Header Section -->
+    <div class="category-header" data-aos="fade-up">
+        <div class="row align-items-center">
+            <div class="col-lg-8">
+                <h1 class="page-title">
+                    <i class="fas fa-edit me-3"></i>Editar Documento
+                </h1>
+                <p class="page-subtitle">Modifica los datos del documento, la categoría o el archivo subido.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Document Form -->
+    <div class="category-form-container" style="max-width:1400px; width:100%; margin:0 auto;" data-aos="fade-up" data-aos-delay="100">
+        <form method="POST" enctype="multipart/form-data" class="category-form" id="editForm">
+            {{ form.hidden_tag() }}
+            <div class="form-header">
+                <h5 class="form-title">
+                    <i class="fas fa-info-circle me-2"></i>Información del Documento
+                </h5>
+                <p class="form-description">Actualiza los campos necesarios para editar el documento</p>
+            </div>
+            <div class="form-body">
+                <div class="row g-4">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label for="titulo" class="form-label required">
+                                <i class="fas fa-heading me-2"></i>Título
+                            </label>
+                            {{ form.titulo(class="form-control form-control-lg", id="titulo", placeholder="Ej: Manual de Usuario") }}
+                            {% if form.titulo.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.titulo.errors %}
+                                        <div class="field-error">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="descripcion" class="form-label">
+                                <i class="fas fa-align-left me-2"></i>Descripción
+                            </label>
+                            {{ form.descripcion(class="form-control", id="descripcion", placeholder="Describe el documento", style="min-height:160px;") }}
+                            {% if form.descripcion.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.descripcion.errors %}
+                                        <div class="field-error">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="categoria_id" class="form-label">
+                                <i class="fas fa-folder me-2"></i>Categoría
+                            </label>
+                            {{ form.categoria_id(class="form-select", id="categoria_id") }}
+                            {% if form.categoria_id.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.categoria_id.errors %}
+                                        <div class="field-error">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="form-label">
+                                <i class="fas fa-file me-2"></i>Archivo actual:
+                            </label>
+                            {% if manual.archivo %}
+                                <div class="d-flex align-items-center gap-2">
+                                    <a href="{{ url_for('main.download', filename=manual.archivo) }}" target="_blank" class="btn btn-outline-primary btn-sm">
+                                        <i class="fas fa-download me-1"></i>{{ manual.archivo }}
+                                    </a>
+                                    <button type="button" class="btn btn-outline-danger btn-sm" id="deleteFileBtn">
+                                        <i class="fas fa-trash me-1"></i>Borrar archivo
+                                    </button>
+                                </div>
+                                <div class="form-text text-danger">Para subir un nuevo archivo, primero debes borrar el actual.</div>
+                            {% else %}
+                                <span class="text-muted">No hay archivo subido</span>
+                            {% endif %}
+                        </div>
+                        <div class="form-group">
+                            <label for="archivo" class="form-label">
+                                <i class="fas fa-file-upload me-2"></i>Subir nuevo archivo
+                            </label>
+                            {{ form.archivo(class="form-control", id="archivo") }}
+                            <div class="form-text">Solo puedes subir un nuevo archivo si no hay uno actual.</div>
+                            {% if form.archivo.errors %}
+                                <div class="field-errors">
+                                    {% for error in form.archivo.errors %}
+                                        <div class="field-error">
+                                            <i class="fas fa-exclamation-circle me-1"></i>{{ error }}
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="form-actions">
+                <button type="submit" class="btn btn-success btn-lg"><i class="fas fa-save me-2"></i>Actualizar documento</button>
+                <a href="{{ url_for('main.search') }}" class="btn btn-outline-secondary btn-lg">
+                    <i class="fas fa-times me-2"></i>Cancelar
+                </a>
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
+{% block extra_css %}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/crear_categoria.css') }}">
+    <style>
+        .category-header {
+            margin-bottom: 2rem;
+        }
+        .category-form-container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+    </style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const deleteBtn = document.getElementById('deleteFileBtn');
+        if (deleteBtn) {
+            deleteBtn.addEventListener('click', function() {
+                if (confirm('¿Seguro que quieres borrar el archivo actual?')) {
+                    fetch(`{{ url_for('main.editar_documento', documento_id=manual.id) }}?delete_file=1`, {
+                        method: 'POST',
+                        headers: { 'X-CSRFToken': '{{ form.csrf_token._value() }}' }
+                    }).then(res => {
+                        if (res.ok) location.reload();
+                        else alert('Error al borrar el archivo.');
+                    });
+                }
+            });
+        }
+    });
+</script>
+{% endblock %}

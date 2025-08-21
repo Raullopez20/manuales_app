@@ -1,0 +1,300 @@
+{% extends "base.html" %}
+{% block container_class %}container-fluid{% endblock %}
+{% block inner_container_class %}container-main-full{% endblock %}
+{% block title %}Historial de Documentos Subidos{% endblock %}
+{% block extra_css %}
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/jquery.dataTables.min.css">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/historial.css') }}">
+{% endblock %}
+
+{% block content %}
+    <div class="historial-container">
+        <div class="historial-wrapper">
+            <!-- Header -->
+            <div class="historial-header">
+                <h2 class="historial-title">
+                    <i class="fas fa-history"></i>
+                    <div>
+                        <div>Historial de Documentos</div>
+                        <div class="historial-subtitle">Gestiona y revisa todos los documentos subidos</div>
+                    </div>
+                </h2>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="action-buttons">
+                <form method="POST" action="{{ url_for('main.generar_backup') }}" style="display: inline;">
+                    <button type="submit" class="action-btn action-btn-success">
+                        <i class="fas fa-database"></i>
+                        Generar Backup
+                    </button>
+                </form>
+                <a href="{{ url_for('main.descargar_ultimo_backup') }}" class="action-btn action-btn-info">
+                    <i class="fas fa-download"></i>
+                    Descargar Último Backup
+                </a>
+                <a href="{{ url_for('main.listar_backups') }}" class="action-btn action-btn-secondary">
+                    <i class="fas fa-list"></i>
+                    Ver Historial de Backups
+                </a>
+            </div>
+
+            <!-- Tabla -->
+            <div class="table-container">
+                <div class="table-wrapper">
+                    {% if manuales %}
+                        <table id="historialTable" class="historial-table">
+                            <thead>
+                            <tr>
+                                <th class="col-id">ID</th>
+                                <th class="col-usuario">Usuario</th>
+                                <th class="col-titulo">Título</th>
+                                <th class="col-descripcion">Descripción</th>
+                                <th class="col-archivo">Archivo</th>
+                                <th class="col-tipo">Tipo</th>
+                                <th class="col-tamaño">Tamaño</th>
+                                <th class="col-categoria">Categoría</th>
+                                <th class="col-pack">Pack</th>
+                                <th class="col-fecha">Fecha</th>
+                                <th class="col-descargas">Descargas</th>
+                                <th class="col-acciones">Acciones</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for manual in manuales %}
+                                <tr>
+                                    <td data-label="ID" class="fw-bold text-secondary">{{ manual.id }}</td>
+                                    <td data-label="Usuario">
+                                        <span class="badge badge-modern" style="background-color: #d68849; color: #fff;">{{ manual.usuario.username if manual.usuario else 'Desconocido' }}</span>
+                                    </td>
+                                    <td data-label="Título" class="fw-semibold text-dark">
+                                        {{ manual.titulo[:30] }}{% if manual.titulo|length > 30 %}...{% endif %}
+                                    </td>
+                                    <td data-label="Descripción" class="text-muted">
+                                        {{ manual.descripcion[:50] }}{% if manual.descripcion|length > 50 %}...{% endif %}
+                                    </td>
+                                    <td data-label="Archivo">
+                                        <a class="file-link" href="{{ url_for('main.download', filename=manual.archivo) }}" target="_blank" title="{{ manual.archivo_original }}">
+                                            <i class="fas fa-file-alt"></i>
+                                            <span>{{ manual.archivo_original[:15] }}{% if manual.archivo_original|length > 15 %}...{% endif %}</span>
+                                        </a>
+                                    </td>
+                                    <td data-label="Tipo">
+                                        <span class="badge badge-modern badge-info">{{ manual.tipo_archivo.upper() }}</span>
+                                    </td>
+                                    <td data-label="Tamaño">
+                                        <span class="badge badge-modern badge-light">{{ manual.tamaño_legible }}</span>
+                                    </td>
+                                    <td data-label="Categoría">
+                                <span class="badge badge-modern badge-secondary">
+                                    {{ manual.categoria.nombre[:10] if manual.categoria else '-' }}
+                                </span>
+                                    </td>
+                                    <td data-label="Pack">
+                                <span class="badge badge-modern badge-warning">
+                                    {{ manual.pack.nombre[:10] if manual.pack else '-' }}
+                                </span>
+                                    </td>
+                                    <td data-label="Fecha" class="text-muted small">
+                                        {{ manual.fecha_creacion.strftime('%d/%m/%Y') }}
+                                    </td>
+                                    <td data-label="Descargas">
+                                        <span class="badge badge-modern badge-success">{{ manual.descargas }}</span>
+                                    </td>
+                                    <td data-label="Acciones">
+                                        <div class="action-btns">
+                                            <a href="{{ url_for('main.download', filename=manual.archivo) }}"
+                                               class="btn-action btn-download"
+                                               title="Descargar">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                            <button class="btn-action btn-preview"
+                                                    title="Vista previa"
+                                                    onclick="previewDocument('{{ manual.archivo }}', '{{ manual.tipo_archivo }}')">
+                                                <i class="fas fa-eye"></i>
+                                            </button>
+                                            <button class="btn-action btn-delete"
+                                                    title="Eliminar"
+                                                    onclick="showDeleteModal('{{ manual.id }}', '{{ manual.titulo }}')">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    {% else %}
+                        <div class="empty-state">
+                            <div class="empty-icon">
+                                <i class="fas fa-folder-open"></i>
+                            </div>
+                            <h4>No hay documentos disponibles</h4>
+                            <p>Comienza subiendo tu primer manual o documento.</p>
+                            <a href="{{ url_for('main.upload') }}" class="action-btn action-btn-success">
+                                <i class="fas fa-plus"></i>
+                                Subir Primer Documento
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modales -->
+    <div class="modal fade" id="previewModal" tabindex="-1" aria-labelledby="previewModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-primary text-white" style="border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title" id="previewModalLabel">
+                        <i class="fas fa-eye me-2"></i>Vista previa del documento
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body" id="previewContent" style="min-height:400px; border-radius: 0 0 20px 20px;"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal fade" id="deleteManualModal" tabindex="-1" aria-labelledby="deleteManualModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+                <div class="modal-header bg-danger text-white" style="border-radius: 20px 20px 0 0;">
+                    <h5 class="modal-title" id="deleteManualModalLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar eliminación
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                    <div class="mb-3">
+                        <i class="fas fa-trash-alt text-danger" style="font-size: 3rem;"></i>
+                    </div>
+                    <p id="deleteManualText" class="mb-0 fs-5"></p>
+                </div>
+                <div class="modal-footer justify-content-center border-0" style="border-radius: 0 0 20px 20px;">
+                    <form id="deleteManualForm" method="POST" class="d-flex gap-2">
+                        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">
+                            <i class="fas fa-times me-2"></i>Cancelar
+                        </button>
+                        <button type="submit" class="btn btn-danger px-4">
+                            <i class="fas fa-trash me-2"></i>Eliminar
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            // Configuración de DataTables
+            $('#historialTable').DataTable({
+                order: [[0, 'desc']],
+                language: {
+                    url: '/static/js/es-ES.json'
+                },
+                pageLength: 25,
+                responsive: true,
+                dom: 'frtip',
+                columnDefs: [
+                    { responsivePriority: 1, targets: [1, 10] }, // Título y Acciones siempre visibles
+                    { responsivePriority: 2, targets: [0, 3, 8] }, // ID, Archivo, Fecha
+                    { responsivePriority: 3, targets: [4, 5, 9] }, // Tipo, Tamaño, Descargas
+                    { responsivePriority: 4, targets: [2, 6, 7] }  // Descripción, Categoría, Pack
+                ]
+            });
+
+            // Animación de entrada para las filas
+            setTimeout(() => {
+                $('#historialTable tbody tr').each(function(index) {
+                    $(this).css('animation-delay', (index * 0.05) + 's');
+                    $(this).addClass('animate__animated animate__fadeInUp');
+                });
+            }, 100);
+        });
+
+        function previewDocument(filename, extension) {
+            const modal = new bootstrap.Modal(document.getElementById('previewModal'));
+            const content = document.getElementById('previewContent');
+
+            content.innerHTML = `
+        <div class='d-flex justify-content-center align-items-center' style='height:400px;'>
+            <div class='text-center'>
+                <div class='spinner-border text-primary mb-3' role='status' style='width: 3rem; height: 3rem;'>
+                    <span class='visually-hidden'>Cargando...</span>
+                </div>
+                <p class='text-muted'>Cargando vista previa...</p>
+            </div>
+        </div>`;
+
+            modal.show();
+
+            setTimeout(() => {
+                let previewHtml = '';
+                if (extension === 'pdf') {
+                    previewHtml = `<iframe src="/uploads/${filename}" width="100%" height="600px" style="border:none; border-radius: 10px;"></iframe>`;
+                } else if (["doc", "docx", "xls", "xlsx", "ppt", "pptx"].includes(extension)) {
+                    const url = encodeURIComponent(window.location.origin + '/uploads/' + filename);
+                    previewHtml = `
+                <iframe src="https://docs.google.com/gview?url=${url}&embedded=true" width="100%" height="600px" style="border:none; border-radius: 10px;"></iframe>
+                <div class='text-center text-muted mt-3'>
+                    <i class="fas fa-info-circle me-2"></i>
+                    Si no se muestra correctamente, <a href='/download/${filename}' target='_blank' class='text-primary fw-bold'>descarga el archivo</a>.
+                </div>`;
+                } else if (extension === 'txt') {
+                    fetch(`/uploads/${filename}`)
+                        .then(res => res.text())
+                        .then(text => {
+                            content.innerHTML = `
+                        <div style="background: #f8f9fa; border-radius: 10px; padding: 1.5rem;">
+                            <pre class='text-break mb-0' style='white-space: pre-wrap; font-family: "Monaco", "Menlo", "Ubuntu Mono", monospace;'>${text}</pre>
+                        </div>`;
+                        })
+                        .catch(err => {
+                            content.innerHTML = `
+                        <div class='text-center text-danger py-5'>
+                            <i class="fas fa-exclamation-triangle mb-3" style="font-size: 3rem;"></i>
+                            <h5>Error al cargar el archivo</h5>
+                            <p>No se pudo cargar el contenido del archivo de texto.</p>
+                        </div>`;
+                        });
+                    return;
+                } else {
+                    previewHtml = `
+                <div class='text-center text-warning py-5'>
+                    <i class="fas fa-file-alt mb-3" style="font-size: 3rem;"></i>
+                    <h5>Vista previa no disponible</h5>
+                    <p>Este formato de archivo no es compatible con la vista previa.</p>
+                    <a href='/download/${filename}' target='_blank' class='btn btn-primary mt-2'>
+                        <i class="fas fa-download me-2"></i>Descargar archivo
+                    </a>
+                </div>`;
+                }
+                content.innerHTML = previewHtml;
+            }, 500);
+        }
+
+        function showDeleteModal(manualId, manualTitulo) {
+            const modal = new bootstrap.Modal(document.getElementById('deleteManualModal'));
+            document.getElementById('deleteManualText').textContent =
+                `¿Estás seguro que deseas eliminar el manual "${manualTitulo}"? Esta acción no se puede deshacer.`;
+
+            const form = document.getElementById('deleteManualForm');
+            form.action = `/eliminar_manual/${manualId}`;
+            modal.show();
+        }
+
+        // Limpiar backdrops de modales
+        function removeBackdrop() {
+            document.querySelectorAll('.modal-backdrop').forEach(function(el) {
+                el.parentNode.removeChild(el);
+            });
+        }
+
+        document.addEventListener('hidden.bs.modal', removeBackdrop);
+        document.addEventListener('shown.bs.modal', removeBackdrop);
+    </script>
+{% endblock %}

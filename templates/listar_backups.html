@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+{% block title %}Historial de Backups{% endblock %}
+{% block content %}
+    <div class="container-fluid py-5">
+        <!-- Header Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h1 class="display-6 fw-bold text-primary mb-0 d-flex align-items-center gap-3">
+                        <div class="bg-primary bg-opacity-10 p-3 rounded ">
+                            <i class="fas fa-database fs-1 text-white" style="filter: drop-shadow(0 0 4px #0d6efd);"></i>
+                        </div>
+                        Historial de Backups
+                    </h1>
+                    <a href="{{ url_for('main.historial') }}" class="btn btn-outline-secondary btn-lg">
+                        <i class="fas fa-arrow-left me-2"></i> Volver
+                    </a>
+                </div>
+                <p class="text-muted fs-5 mb-0">Gestiona y restaura copias de seguridad de tu sistema</p>
+            </div>
+        </div>
+
+        <!-- Flash Messages -->
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div id="flash-messages">
+                            {% for category, message in messages %}
+                                <div class="alert alert-{{ 'success' if category=='success' else 'danger' if category=='danger' else 'warning' }} alert-dismissible fade show shadow-sm" role="alert">
+                                    {{ message|safe }}
+                                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        <div class="row">
+            <!-- Upload Section -->
+            <div class="col-12 col-xl-5 mb-4">
+                <div class="card h-100 border-0 shadow-lg">
+                    <div class="card-header bg-gradient text-white py-3" style="background: linear-gradient(135deg, #6c757d, #495057);">
+                        <h4 class="card-title mb-0 d-flex align-items-center gap-2">
+                            <i class="fas fa-upload"></i>
+                            Restaurar Backup
+                        </h4>
+                    </div>
+                    <div class="card-body p-4">
+                        <form id="form-restaurar-backup" action="{{ url_for('main.restaurar_backup') }}" method="post" enctype="multipart/form-data">
+
+                            <!-- File Upload Area -->
+                            <div class="upload-area border-2 border-dashed border-secondary rounded-4 p-4 text-center mb-4 position-relative" style="transition: all 0.3s ease;">
+                                <div class="upload-icon mb-3">
+                                    <i class="fas fa-cloud-upload-alt text-secondary" style="font-size: 3rem; opacity: 0.7;"></i>
+                                </div>
+                                <input type="file" name="backup_file" id="backup_file" accept=".zip" required class="form-control position-absolute w-100 h-100 opacity-0" style="top: 0; left: 0; cursor: pointer;">
+                                <div class="upload-text">
+                                    <h5 class="text-secondary mb-2">Arrastra tu archivo aquí</h5>
+                                    <p class="text-muted mb-3">o haz clic para seleccionar</p>
+                                    <small class="text-muted">Solo archivos .zip</small>
+                                </div>
+                            </div>
+
+                            <!-- Selected File Display -->
+                            <div class="selected-file-info mb-4" style="display: none;">
+                                <div class="alert alert-info border-0 shadow-sm">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <i class="fas fa-file-archive fs-3 text-info"></i>
+                                        <div class="flex-grow-1">
+                                            <div class="fw-bold">Archivo seleccionado:</div>
+                                            <div id="archivo-seleccionado" class="text-muted"></div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div class="d-flex gap-3 justify-content-end" id="botones-restauracion" style="display:none !important;">
+                                <button type="button" class="btn btn-warning btn-lg fw-bold px-4 shadow-sm" id="btn-confirmar-restauracion">
+                                    <i class="fas fa-undo me-2"></i> Confirmar restauración
+                                </button>
+                                <button type="button" class="btn btn-outline-secondary btn-lg px-4" id="btn-cancelar-restauracion">
+                                    <i class="fas fa-times me-2"></i> Cancelar
+                                </button>
+                            </div>
+                        </form>
+
+                        <!-- Warning Alert -->
+                        <div class="alert alert-danger border-0 mt-4 shadow-sm">
+                            <div class="d-flex align-items-center gap-3">
+                                <i class="fas fa-exclamation-triangle fs-3 text-danger"></i>
+                                <div>
+                                    <div class="fw-bold mb-1">¡Atención!</div>
+                                    <div>Esta acción reemplazará todos los datos y documentos actuales.</div>
+                                    <div class="text-decoration-underline fw-bold">¡No se puede deshacer!</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Backups Table Section -->
+            <div class="col-12 col-xl-7">
+                <div class="card border-0 shadow-lg h-100">
+                    <div class="card-header bg-gradient text-white py-3" style="background: linear-gradient(135deg, #0d6efd, #0a58ca);">
+                        <h4 class="card-title mb-0 d-flex align-items-center gap-2">
+                            <i class="fas fa-list"></i>
+                            Backups Disponibles
+                        </h4>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if backups|length > 0 %}
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle mb-0">
+                                    <thead class="table-light border-bottom">
+                                    <tr>
+                                        <th class="px-4 py-3 fw-bold text-secondary">
+                                            <i class="fas fa-file-archive me-2"></i>Archivo
+                                        </th>
+                                        <th class="px-4 py-3 fw-bold text-secondary">
+                                            <i class="fas fa-calendar me-2"></i>Fecha
+                                        </th>
+                                        <th class="px-4 py-3 fw-bold text-secondary">
+                                            <i class="fas fa-tag me-2"></i>Tipo
+                                        </th>
+                                        <th class="px-4 py-3 fw-bold text-secondary text-center">
+                                            <i class="fas fa-cog me-2"></i>Acciones
+                                        </th>
+                                    </tr>
+                                    </thead>
+                                    <tbody>
+                                    {% for backup in backups %}
+                                        <tr class="border-bottom">
+                                            <td class="px-4 py-3">
+                                                <div class="d-flex align-items-center gap-3">
+                                                    <div class="bg-primary bg-opacity-10 p-2 rounded">
+                                                        <i class="fas fa-archive text-primary"></i>
+                                                    </div>
+                                                    <div>
+                                                        <div class="fw-semibold">{{ backup.nombre }}</div>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <span class="badge bg-light text-dark fs-6 fw-normal">{{ backup.fecha }}</span>
+                                            </td>
+                                            <td class="px-4 py-3">
+                                                <span class="badge bg-info text-white">{{ backup.tipo }}</span>
+                                            </td>
+                                            <td class="px-4 py-3 text-center">
+                                                <div class="btn-group" role="group">
+                                                    <a href="{{ url_for('main.descargar_backup', nombre=backup.nombre) }}"
+                                                       class="btn btn-outline-success btn-sm"
+                                                       title="Descargar backup">
+                                                        <i class="fas fa-download"></i>
+                                                    </a>
+                                                    <form method="POST" action="{{ url_for('main.eliminar_backup', nombre=backup.nombre) }}" style="display:inline;">
+                                                        <button type="submit"
+                                                                class="btn btn-outline-danger btn-sm"
+                                                                onclick="return confirm('¿Eliminar este backup?')"
+                                                                title="Eliminar backup">
+                                                            <i class="fas fa-trash"></i>
+                                                        </button>
+                                                    </form>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="text-center py-5">
+                                <div class="mb-4">
+                                    <i class="fas fa-inbox text-muted" style="font-size: 4rem; opacity: 0.5;"></i>
+                                </div>
+                                <h5 class="text-muted mb-2">No hay backups disponibles</h5>
+                                <p class="text-muted">Los backups que crees aparecerán aquí.</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de confirmación -->
+    <div class="modal fade" id="modalConfirmacionRestore" tabindex="-1" aria-labelledby="modalConfirmacionRestoreLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg">
+                <div class="modal-header bg-warning bg-opacity-10 border-bottom">
+                    <h5 class="modal-title text-warning-emphasis fw-bold" id="modalConfirmacionRestoreLabel">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirmar restauración
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <div class="text-center mb-3">
+                        <i class="fas fa-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                    </div>
+                    <p class="text-center fw-bold fs-5 mb-3">¿Estás seguro que deseas restaurar el backup?</p>
+                    <div class="alert alert-danger border-0 text-center">
+                        <strong>Esta acción reemplazará todos los datos y documentos actuales y <u>no se puede deshacer</u>.</strong>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 p-4">
+                    <button type="button" class="btn btn-outline-secondary btn-lg px-4" data-bs-dismiss="modal">
+                        <i class="fas fa-times me-2"></i>Cancelar
+                    </button>
+                    <button type="button" class="btn btn-warning btn-lg fw-bold px-4" id="btn-modal-confirmar">
+                        <i class="fas fa-check me-2"></i>Sí, restaurar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .upload-area:hover {
+            border-color: #0d6efd !important;
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+
+        .upload-area:hover .upload-icon i {
+            color: #0d6efd !important;
+            transform: scale(1.1);
+        }
+
+        .card {
+            transition: transform 0.2s ease;
+        }
+
+        .table tbody tr:hover {
+            background-color: rgba(13, 110, 253, 0.05);
+        }
+
+        .btn-group .btn {
+            margin: 0 2px;
+        }
+
+        @media (max-width: 768px) {
+            .display-6 {
+                font-size: 1.5rem;
+            }
+
+            .btn-lg {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .table-responsive {
+                font-size: 0.9rem;
+            }
+        }
+    </style>
+
+    <script>
+        const confirmarBtn = document.getElementById('btn-confirmar-restauracion');
+        const cancelarBtn = document.getElementById('btn-cancelar-restauracion');
+        const backupInput = document.getElementById('backup_file');
+        const archivoSeleccionado = document.getElementById('archivo-seleccionado');
+        const botonesRestauracion = document.getElementById('botones-restauracion');
+        const selectedFileInfo = document.querySelector('.selected-file-info');
+        const uploadArea = document.querySelector('.upload-area');
+
+        // Drag and drop functionality
+        uploadArea.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#0d6efd';
+            uploadArea.style.backgroundColor = 'rgba(13, 110, 253, 0.1)';
+        });
+
+        uploadArea.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#6c757d';
+            uploadArea.style.backgroundColor = 'transparent';
+        });
+
+        uploadArea.addEventListener('drop', function(e) {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#6c757d';
+            uploadArea.style.backgroundColor = 'transparent';
+
+            const files = e.dataTransfer.files;
+            if (files.length > 0 && files[0].name.endsWith('.zip')) {
+                backupInput.files = files;
+                backupInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        backupInput.onchange = function() {
+            if (backupInput.files.length > 0) {
+                archivoSeleccionado.textContent = backupInput.files[0].name;
+                selectedFileInfo.style.display = 'block';
+                botonesRestauracion.style.display = 'flex';
+                uploadArea.style.display = 'none';
+            } else {
+                selectedFileInfo.style.display = 'none';
+                botonesRestauracion.style.display = 'none';
+                uploadArea.style.display = 'block';
+            }
+        };
+
+        cancelarBtn.onclick = function() {
+            backupInput.value = '';
+            selectedFileInfo.style.display = 'none';
+            botonesRestauracion.style.display = 'none';
+            uploadArea.style.display = 'block';
+        };
+
+        // Modal confirmation logic remains the same
+        confirmarBtn.onclick = function() {
+            const modal = new bootstrap.Modal(document.getElementById('modalConfirmacionRestore'));
+            modal.show();
+        };
+
+        document.getElementById('btn-modal-confirmar').onclick = function() {
+            document.getElementById('form-restaurar-backup').submit();
+        };
+    </script>
+{% endblock %}
