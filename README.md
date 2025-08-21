@@ -1,5 +1,7 @@
 # Sistema de Manuales Empresariales
 
+![Vista de la barra de navegación](static/img/navbar-docs.png)
+
 Sistema web profesional para la gestión centralizada de documentación y manuales corporativos. Desarrollado con Flask y diseñado con una paleta de colores empresarial moderna.
 
 ## 🚀 Características Principales
